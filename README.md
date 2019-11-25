@@ -6,6 +6,10 @@ Flask backend for customer interface.
 - Python 3
 
 ## Setup and Usage
+```bash
+pip install -r requirements.txt
+```
+
 ### For development
 ```python
 python run.py
