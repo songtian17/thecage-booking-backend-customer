@@ -2,5 +2,15 @@
 
 Flask backend for customer interface.
 
-- Linter: Flake8
-- Formatter: Black
+## Requirements
+- Python 3
+
+## Setup and Usage
+### For development
+```python
+python run.py
+```
+
+## Extra information
+- Linter: [Flake8](https://github.com/PyCQA/flake8)
+- Formatter: [Black](https://github.com/psf/black)
