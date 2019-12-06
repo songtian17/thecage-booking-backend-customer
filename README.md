@@ -6,6 +6,10 @@ Flask backend for customer interface.
 - Python 3
 
 ## Setup and Usage
+Create instance folder in project root with the files key.key and config.py
+- key.key is used for json web tokens
+- instance/config.py contains private configurations
+
 ```bash
 pip install -r requirements.txt
 ```
