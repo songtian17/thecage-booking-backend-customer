@@ -12,6 +12,7 @@ def index():
     return "Hello World!"
 
 import service.routes.calendar
-import service.routes.route2
+import service.routes.signin
+import service.routes.signup
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
