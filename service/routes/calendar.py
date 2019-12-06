@@ -33,4 +33,6 @@ def route1():
         ],
         {"fields": ["id", "booking_start", "booking_end", "pitch_id", "venue_id"]},
     )
+    for model_result in model_results:
+        print(model_result, file=sys.stdout)
     return json.dumps(model_results)
