@@ -1,7 +1,9 @@
 from service import app
-from flask import request
+from flask import request, jsonify
+from service.models import Customer, customer_schema
+from service import db
 import bcrypt
-import json
+# import json
 
 
 @app.route("/signup/", methods=["POST"])
@@ -21,18 +23,21 @@ def signup():
     file.write(hashed_password.decode("utf-8"))
     file.close()
 
-    new_customer = {}
-    new_customer["customer"] = []
-    new_customer["customer"].append(
-        {
-            "username": register_username,
-            "email": register_email,
-            "password": hashed_password.decode("utf-8"),
-            "phone": register_phone,
-        }
-    )
+    # new_customer = {}
+    # new_customer["customer"] = []
+    # new_customer["customer"].append(
+    #     {
+    #         "username": register_username,
+    #         "email": register_email,
+    #         "password": hashed_password.decode("utf-8"),
+    #         "phone": register_phone,
+    #     }
+    # )
 
-    with open("instance/customers.txt", "w") as outfile:
-        json.dump(new_customer, outfile)
+    # with open("instance/customers.txt", "w") as outfile:
+    #     json.dump(new_customer, outfile)
+    new_customer = Customer(register_email, register_username, hashed_password, register_phone)
 
-    return new_customer
+    db.session.add(new_customer)
+    db.session.commit()
+    return customer_schema.jsonify(new_customer)
