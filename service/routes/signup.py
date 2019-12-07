@@ -19,9 +19,12 @@ def signup():
     hashed_password = bcrypt.hashpw(register_password.encode("utf8"), salt)
     print("hashed pw", hashed_password)
 
-    file = open("instance/hashedpw.txt", "w+")
-    file.write(hashed_password.decode("utf-8"))
-    file.close()
+    # print("hashed pw", hashed_password)
+
+    # file = open("instance/hashedpw.txt", "w+")
+    # file.write(hashed_password.decode("utf-8"))
+    # file.close()
+    register_password = hashed_password.decode('utf8')
 
     # new_customer = {}
     # new_customer["customer"] = []
@@ -36,7 +39,7 @@ def signup():
 
     # with open("instance/customers.txt", "w") as outfile:
     #     json.dump(new_customer, outfile)
-    new_customer = Customer(register_email, register_username, hashed_password, register_phone)
+    new_customer = Customer(register_email, register_username, register_password, register_phone)
 
     db.session.add(new_customer)
     db.session.commit()
