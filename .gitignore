@@ -1,2 +1,3 @@
-instance/config.py
+instance
 env
+service/routes/__pycache__
