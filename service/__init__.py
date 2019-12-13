@@ -18,7 +18,10 @@ def index():
     return "Hello World!"
 
 import service.routes.calendar
+import service.routes.customer
+import service.routes.customerodoo
 import service.routes.signin
 import service.routes.signup
+import service.routes.salesordercreate
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
