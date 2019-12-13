@@ -6,7 +6,7 @@ import jwt
 import json
 
 
-@app.route("/signin/", methods=["POST"])
+@app.route("/signin", methods=["POST"])
 def signin():
 
     req_data = request.get_json()
@@ -39,14 +39,11 @@ def signin():
     result = customers_schema.dump(customer)
     for p in result:
         if p["name"] == login_username:
-                hashed_password = p["password"]
-                if bcrypt.checkpw(
-                    login_password.encode("utf-8"),
-                    hashed_password.encode("utf-8")
-                ):
-                    token = jwt.encode(
-                    {"name": login_username}, key, algorithm="HS256"
-                    )
-                    return token
+            hashed_password = p["password"]
+            if bcrypt.checkpw(
+                login_password.encode("utf-8"), hashed_password.encode("utf-8")
+            ):
+                token = jwt.encode({"name": login_username}, key, algorithm="HS256")
+                return token
 
     return "Login Failed", 401
