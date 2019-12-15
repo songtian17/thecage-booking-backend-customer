@@ -9,9 +9,9 @@ from service import db
 def add_customer_odoo():
     customer_id = request.json["customerId"]
     odoo_id = request.json["odooId"]
-    venue = request.json["venue"]
+    venue_id = request.json["venueId"]
 
-    new_customer_odoo = CustomerOdoo(customer_id, odoo_id, venue)
+    new_customer_odoo = CustomerOdoo(customer_id, odoo_id, venue_id)
 
     db.session.add(new_customer_odoo)
     db.session.commit()
@@ -41,11 +41,11 @@ def update_customer_odoo(Id):
 
     customer_id = request.json["customerId"]
     odoo_id = request.json["odooId"]
-    venue = request.json["venue"]
+    venue_id = request.json["venue"]
 
     customer_odoo.id = customer_id
     customer_odoo.odoo_id = odoo_id
-    customer_odoo.venue = venue
+    customer_odoo.venue_id = venue_id
 
     db.session.commit()
 
