@@ -221,7 +221,7 @@ class Pitch(db.Model):
     __tablename__ = "Pitch"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
-    name = db.Column(db.String(200), nullable=False, unique=True)
+    name = db.Column(db.String(200), nullable=False)
 
     def __init__(self, name, field_id):
         self.name = name
