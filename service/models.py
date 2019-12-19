@@ -176,17 +176,19 @@ class Field(db.Model):
     colour = db.Column(db.String(7))
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_at = db.Column(db.DateTime, onupdate=datetime.now, nullable=False)
+    odoo_id = db.Column(db.Integer, nullable=False)
     custom_timeslots = db.relationship(
         "CustomTimeSlot", backref="field", lazy=True)
     pitches = db.relationship("Pitch", backref="Pitch", lazy=True, cascade="all, delete")
 
-    def __init__(self, name, venue_id, num_pitches, colour, created_at, updated_at):
+    def __init__(self, name, venue_id, num_pitches, colour, created_at, updated_at, odoo_id):
         self.name = name
         self.venue_id = venue_id
         self.num_pitches = num_pitches
         self.colour = colour
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
+        self.odoo_id = odoo_id
         self.pitches = []
         self.custom_timeslots = []
 
@@ -222,11 +224,12 @@ class Pitch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
+    odoo_id = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, name, field_id):
+    def __init__(self, name, field_id, odoo_id):
         self.name = name
         self.field_id = field_id
-
+        self.odoo_id = odoo_id
 
 class PitchSchema(ma.Schema):
     id = fields.Integer()
