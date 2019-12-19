@@ -122,7 +122,7 @@ class CustomerOdoo(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     customer_id = db.Column(
         db.Integer, db.ForeignKey("Customer.id"), nullable=False)
-    odoo_id = db.Column(db.Integer, nullable=False, autoincrement=True)
+    odoo_id = db.Column(db.Integer, nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
 
     def __init__(self, venue_id):
@@ -134,7 +134,7 @@ class CustomerOdoo(db.Model):
 class CustomerOdooSchema(ma.Schema):
     id = fields.Integer()
     customer_id = fields.Integer()
-    odoo_id = fields.Integer()
+    odoo_id = fields.Integer(required=True)
     venue_id = fields.Integer()
 
 
@@ -201,6 +201,7 @@ class FieldSchema(ma.Schema):
     colour = fields.String(required=True)
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
+    odoo_id = fields.Integer(required=True)
 
 
 field_schema = FieldSchema()
@@ -213,6 +214,7 @@ class FieldSchema3(ma.Schema):
     venue_id = fields.Integer()
     colour = fields.String(required=True)
     num_pitches = fields.Integer()
+    odoo_id = fields.Integer(required=True)
 
 
 field3_schema = FieldSchema3()
@@ -235,7 +237,7 @@ class PitchSchema(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     field_id = fields.Integer()
-
+    odoo_id = fields.Integer(required=True)
 
 pitch_schema = PitchSchema()
 pitches_schema = PitchSchema(many=True)
@@ -245,7 +247,7 @@ class FieldSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     pitches = fields.List(fields.Nested(PitchSchema(only=("id", "name"))))
-
+    odoo_id = fields.Integer(required=True)
 
 field2_schema = FieldSchema2()
 fields2_schema = FieldSchema2(many=True)
@@ -515,15 +517,17 @@ class Venue(db.Model):
     name = db.Column(db.String(200), nullable=False, unique=True)
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    odoo_id = db.Column(db.Integer, nullable=False)
     fields = db.relationship("Field", backref="venue", lazy=True, cascade="all, delete")
     promo_code_valid_locations = db.relationship(
         "PromoCodeValidLocation", backref="venue", lazy=True
     )
 
-    def __init__(self, name, created_at, updated_at):
+    def __init__(self, name, created_at, updated_at, odoo_id):
         self.name = name
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
+        self.odoo_id = odoo_id
         self.fields = []
         self.promo_code_valid_locations = []
 
@@ -533,6 +537,7 @@ class VenueSchema(ma.Schema):
     name = fields.String(required=True)
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
+    odoo_id = fields.Integer(required=True)
 
 
 venue_schema = VenueSchema()
@@ -543,6 +548,7 @@ class VenueSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     fields = fields.List(fields.Nested(FieldSchema(only=("id", "name"))))
+    odoo_id = fields.Integer(required=True)
 
 
 venue2_schema = VenueSchema2()
