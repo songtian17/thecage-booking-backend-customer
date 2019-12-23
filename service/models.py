@@ -73,11 +73,10 @@ class CustomTimeSlot(db.Model):
 
 
 class CustomTimeSlotSchema(ma.Schema):
+    id = fields.Integer()
     start_time = fields.Time(required=True)
     field_id = fields.Integer()
     duration = fields.Integer(required=True)
-    created_at = fields.DateTime()
-    updated_at = fields.DateTime()
 
 
 customtimeslot_schema = CustomTimeSlotSchema()
@@ -140,31 +139,6 @@ class CustomerOdooSchema(ma.Schema):
 
 customer_odoo_schema = CustomerOdooSchema()
 customer_odoos_schema = CustomerOdooSchema(many=True)
-
-
-class Discount(db.Model):
-    __tablename__ = "Discount"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    discount_type = db.Column(db.String(200), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    timing_discounts = db.relationship(
-        "TimingDiscount", backref="discount", lazy=True, uselist=False
-    )
-    promo_codes = db.relationship("PromoCode", backref="discount", lazy=True)
-
-    def __init__(self, discount_type, amount):
-        self.discount_type = discount_type
-        self.amount = amount
-
-
-class DiscountSchema(ma.Schema):
-    id = fields.Integer()
-    discount_type = fields.String(required=True)
-    amount = fields.Float(required=True)
-
-
-discount_schema = DiscountSchema()
-discounts_schema = DiscountSchema(many=True)
 
 
 class Field(db.Model):
@@ -233,11 +207,13 @@ class Pitch(db.Model):
         self.field_id = field_id
         self.odoo_id = odoo_id
 
+
 class PitchSchema(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     field_id = fields.Integer()
     odoo_id = fields.Integer(required=True)
+
 
 pitch_schema = PitchSchema()
 pitches_schema = PitchSchema(many=True)
@@ -246,8 +222,9 @@ pitches_schema = PitchSchema(many=True)
 class FieldSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
-    pitches = fields.List(fields.Nested(PitchSchema(only=("id", "name"))))
     odoo_id = fields.Integer(required=True)
+    pitches = fields.List(fields.Nested(PitchSchema(only=("id", "name", "odoo_id"))))
+
 
 field2_schema = FieldSchema2()
 fields2_schema = FieldSchema2(many=True)
@@ -285,13 +262,15 @@ products_schema = ProductSchema(many=True)
 class PromoCode(db.Model):
     __tablename__ = "PromoCode"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    discount_id = db.Column(db.Integer, db.ForeignKey(
-        "Discount.id"), nullable=False)
+    # discount_id = db.Column(db.Integer, db.ForeignKey(
+    #     "TimingDiscount.id"), nullable=False)
     code = db.Column(db.String(200), unique=True, nullable=False)
     valid_from = db.Column(db.DateTime, default=datetime.now, nullable=False)
     valid_to = db.Column(db.DateTime, default=datetime.now, nullable=False)
     usage_limit = db.Column(db.Integer, nullable=False)
     uses_left = db.Column(db.Integer, nullable=False)
+    discount_type = db.Column(db.String(200), nullable=False)
+    discount = db.Column(db.Float, nullable=False) 
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     promo_code_logs = db.relationship(
@@ -306,12 +285,16 @@ class PromoCode(db.Model):
         "PromoCodeValidLocation", backref="promocode", lazy=True
     )
 
-    def __init__(self, code, valid_from, valid_to, usage_limit, uses_left):
+    def __init__(self, code, valid_from, valid_to, usage_limit, uses_left, discount_type, discount, created_at, updated_at):
         self.code = code
         self.valid_from = valid_from
         self.valid_to = valid_to
         self.usage_limit = usage_limit
         self.uses_left = uses_left
+        self.discount_type = discount_type
+        self.discount = discount
+        self.created_at = created_at
+        self.updated_at = updated_at
 
 
 class PromoCodeSchema(ma.Schema):
@@ -470,8 +453,9 @@ class PurchaseLog(db.Model):
     purchase_items = db.relationship(
         "PurchaseItem", backref="purchaselog", lazy=True)
 
-    def __init__(self, timestamp):
+    def __init__(self, customer_id, timestamp):
         self.timestamp = timestamp
+        self.customer_id = customer_id
 
 
 class PurchaseLogSchema(ma.Schema):
@@ -483,51 +467,66 @@ class PurchaseLogSchema(ma.Schema):
 purchase_log_schema = PurchaseLogSchema()
 purchase_logs_schema = PurchaseLogSchema(many=True)
 
+class PurchaseLogSchema2(ma.Schema):
+    id = fields.Integer()
+    customer_id = fields.Integer()
+    timestamp = fields.DateTime()
+    fields = fields.List(fields.Nested(PurchaseItemSchema(only=(
+        "id", "product_id", "field_id", "price", "start_time", "end_time"
+        ))))
 
+
+purchase_log2_schema = PurchaseLogSchema2()
+purchase_log2s_schema = PurchaseLogSchema2(many=True)
 class TimingDiscount(db.Model):
     __tablename__ = "TimingDiscount"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    discount_id = db.Column(db.Integer, db.ForeignKey(
-        "Discount.id"), nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    status = db.Column(db.String(200), nullable=False)
+    discount_type = db.Column(db.String(200), nullable=False)
+    discount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.Boolean, default=False)
+    # promo_codes = db.relationship("PromoCode", backref="timingdiscount", lazy=True)
 
-    def __init__(self, start_time, end_time, status):
+    def __init__(self, start_time, end_time, discount_type, discount, status):
         self.start_time = start_time
         self.end_time = end_time
+        self.discount_type = discount_type
+        self.discount = discount
         self.status = status
 
 
 class TimingDiscountSchema(ma.Schema):
     id = fields.Integer()
-    discount_id = fields.Integer()
     start_time = fields.Time(required=True)
     end_time = fields.Time(required=True)
-    status = fields.String(required=True)
+    discount_type = fields.String(required=True)
+    discount = fields.Float(required=True)
+    status = fields.Boolean()
 
 
-timing_discount_schema = TimingDiscountSchema()
-timing_discounts_schema = TimingDiscountSchema(many=True)
+timingdiscount_schema = TimingDiscountSchema()
+timingdiscounts_schema = TimingDiscountSchema(many=True)
 
 
 class Venue(db.Model):
     __tablename__ = "Venue"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(200), nullable=False, unique=True)
-    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    name = db.Column(db.String(200), nullable=False, unique=True) # "Kallang05"
+    field_type = db.Column(db.String(200), nullable=False, unique=True) # "5-A-Side" / "7-A-Side"
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False) 
     updated_at = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
-    odoo_id = db.Column(db.Integer, nullable=False)
+    # odoo_id = db.Column(db.Integer, nullable=False)
     fields = db.relationship("Field", backref="venue", lazy=True, cascade="all, delete")
     promo_code_valid_locations = db.relationship(
         "PromoCodeValidLocation", backref="venue", lazy=True
     )
 
-    def __init__(self, name, created_at, updated_at, odoo_id):
+    def __init__(self, name, created_at, updated_at):
         self.name = name
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
-        self.odoo_id = odoo_id
+        # self.odoo_id = odoo_id
         self.fields = []
         self.promo_code_valid_locations = []
 
@@ -537,7 +536,7 @@ class VenueSchema(ma.Schema):
     name = fields.String(required=True)
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
-    odoo_id = fields.Integer(required=True)
+    # odoo_id = fields.Integer(required=True)
 
 
 venue_schema = VenueSchema()
@@ -547,7 +546,6 @@ venues_schema = VenueSchema(many=True)
 class VenueSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
-    odoo_id = fields.Integer(required=True)
     fields = fields.List(fields.Nested(FieldSchema(only=("id", "name"))))
 
 
