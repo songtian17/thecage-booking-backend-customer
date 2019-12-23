@@ -125,7 +125,7 @@ class CustomerOdoo(db.Model):
     odoo_id = db.Column(db.Integer, nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
 
-    def __init__(self, venue_id):
+    def __init__(self, venue_id, odoo_id, customer_id):
         self.venue_id = venue_id
         self.odoo_id = odoo_id
         self.customer_id = customer_id
