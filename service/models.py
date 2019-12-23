@@ -547,8 +547,8 @@ venues_schema = VenueSchema(many=True)
 class VenueSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
-    fields = fields.List(fields.Nested(FieldSchema(only=("id", "name"))))
     odoo_id = fields.Integer(required=True)
+    fields = fields.List(fields.Nested(FieldSchema(only=("id", "name"))))
 
 
 venue2_schema = VenueSchema2()
