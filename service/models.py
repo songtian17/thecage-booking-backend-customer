@@ -2,6 +2,7 @@
 from datetime import datetime
 from service import db, ma
 from marshmallow import fields
+from sqlalchemy import event
 
 
 class Admin(db.Model):
@@ -63,6 +64,13 @@ announcement_schema = AnnouncementSchema()
 announcements_schema = AnnouncementSchema(many=True)
 
 
+def insert_data(target, connection, **kw):
+    connection.execute(target.insert(), {'id': 1, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Top', 'visibility': False}, {'id': 2, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Bottom', 'visibility': True})
+
+
+event.listen(Announcement.__table__, 'after_create', insert_data)
+
+
 class CustomTimeSlot(db.Model):
     __tablename__ = "CustomTimeSlot"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -86,6 +94,7 @@ class CustomTimeSlotSchema(ma.Schema):
     id = fields.Integer()
     start_time = fields.Time(required=True)
     end_time = fields.Time(required=True)
+    field_id = fields.Integer()
     duration = fields.Integer(required=True)
 
 
@@ -134,7 +143,7 @@ class CustomerOdoo(db.Model):
     odoo_id = db.Column(db.Integer, nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
 
-    def __init__(self, venue_id, odoo_id, customer_id):
+    def __init__(self, customer_id, odoo_id, venue_id):
         self.venue_id = venue_id
         self.odoo_id = odoo_id
         self.customer_id = customer_id
@@ -151,54 +160,25 @@ customer_odoo_schema = CustomerOdooSchema()
 customer_odoos_schema = CustomerOdooSchema(many=True)
 
 
-class TimingDiscount(db.Model):
-    __tablename__ = "TimingDiscount"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    start_time = db.Column(db.Time, nullable=False)
-    end_time = db.Column(db.Time, nullable=False)
-    discount_type = db.Column(db.String(200), nullable=False)
-    discount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.Boolean, default=False)
-    promo_codes = db.relationship("PromoCode", backref="timingdiscount", lazy=True)
-
-    def __init__(self, start_time, end_time, discount_type, discount, status):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.discount_type = discount_type
-        self.discount = discount
-        self.status = status
-
-
-class TimingDiscountSchema(ma.Schema):
-    id = fields.Integer()
-    start_time = fields.Time(required=True)
-    end_time = fields.Time(required=True)
-    discount_type = fields.String(required=True)
-    discount = fields.Float(required=True)
-    status = fields.Boolean()
-
-
-timingdiscount_schema = TimingDiscountSchema()
-timingdiscounts_schema = TimingDiscountSchema(many=True)
-
-
 class Field(db.Model):
     __tablename__ = "Field"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False, unique=True)
+    field_type = db.Column(db.String(200), nullable=False) # "5-A-Side" / "7-A-Side"
     num_pitches = db.Column(db.Integer, nullable=False)
     colour = db.Column(db.String(7))
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_at = db.Column(db.DateTime, onupdate=datetime.now, nullable=False)
     odoo_id = db.Column(db.Integer, nullable=False)
     custom_timeslots = db.relationship(
-        "CustomTimeSlot", backref="field", lazy=True)
+        "CustomTimeSlot", backref="field", lazy=True, cascade="all, delete")
     pitches = db.relationship("Pitch", backref="Pitch", lazy=True, cascade="all, delete")
 
-    def __init__(self, name, venue_id, num_pitches, colour, created_at, updated_at, odoo_id):
+    def __init__(self, name, venue_id, field_type, num_pitches, colour, created_at, updated_at, odoo_id):
         self.name = name
         self.venue_id = venue_id
+        self.field_type = field_type
         self.num_pitches = num_pitches
         self.colour = colour
         self.created_at = datetime.now()
@@ -212,6 +192,7 @@ class FieldSchema(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     venue_id = fields.Integer()
+    field_type = fields.String(required=True)
     num_pitches = fields.Integer()
     colour = fields.String(required=True)
     created_at = fields.DateTime()
@@ -227,6 +208,7 @@ class FieldSchema3(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     venue_id = fields.Integer()
+    field_type = fields.String(required=True)
     colour = fields.String(required=True)
     num_pitches = fields.Integer()
     odoo_id = fields.Integer(required=True)
@@ -241,7 +223,7 @@ class Pitch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
-    odoo_id = db.Column(db.Integer, nullable=False)
+    odoo_id = db.Column(db.Integer)
 
     def __init__(self, name, field_id, odoo_id):
         self.name = name
@@ -253,7 +235,7 @@ class PitchSchema(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
     field_id = fields.Integer()
-    odoo_id = fields.Integer(required=True)
+    odoo_id = fields.Integer()
 
 
 pitch_schema = PitchSchema()
@@ -310,6 +292,7 @@ class PromoCode(db.Model):
     valid_to = db.Column(db.DateTime, default=datetime.now, nullable=False)
     usage_limit = db.Column(db.Integer, nullable=False)
     uses_left = db.Column(db.Integer, nullable=False)
+    usage_per_user = db.Column(db.Integer, nullable=False)
     discount_type = db.Column(db.String(200), nullable=False)
     discount = db.Column(db.Float, nullable=False) 
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
@@ -326,12 +309,13 @@ class PromoCode(db.Model):
         "PromoCodeValidLocation", backref="promocode", lazy=True
     )
 
-    def __init__(self, code, valid_from, valid_to, usage_limit, uses_left, discount_type, discount, created_at, updated_at):
+    def __init__(self, code, valid_from, valid_to, usage_limit, uses_left, usage_per_user, discount_type, discount, created_at, updated_at):
         self.code = code
         self.valid_from = valid_from
         self.valid_to = valid_to
         self.usage_limit = usage_limit
         self.uses_left = uses_left
+        self.usage_per_user = usage_per_user
         self.discount_type = discount_type
         self.discount = discount
         self.created_at = created_at
@@ -346,6 +330,7 @@ class PromoCodeSchema(ma.Schema):
     valid_to = fields.DateTime(required=True)
     usage_limit = fields.Integer(required=True)
     uses_left = fields.Integer(required=True)
+    usage_per_user = fields.Integer(required=True)
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
 
@@ -386,8 +371,10 @@ class PromoCodeValidLocation(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
 
-    def __init__(self, name):
+    def __init__(self, name, promo_code_id, venue_id):
         self.name = name
+        self.promo_code_id = promo_code_id
+        self.venue_id = venue_id
 
 
 class PromoCodeValidLocationSchema(ma.Schema):
@@ -410,8 +397,10 @@ class PromoCodeValidProduct(db.Model):
         "Product.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
 
-    def __init__(self, name):
+    def __init__(self, name, promo_code_id, product_id):
         self.name = name
+        self.promo_code_id = promo_code_id
+        self.product_id = product_id
 
 
 class PromoCodeValidProductSchema(ma.Schema):
@@ -494,8 +483,9 @@ class PurchaseLog(db.Model):
     purchase_items = db.relationship(
         "PurchaseItem", backref="purchaselog", lazy=True)
 
-    def __init__(self, timestamp):
+    def __init__(self, customer_id, timestamp):
         self.timestamp = timestamp
+        self.customer_id = customer_id
 
 
 class PurchaseLogSchema(ma.Schema):
@@ -508,11 +498,61 @@ purchase_log_schema = PurchaseLogSchema()
 purchase_logs_schema = PurchaseLogSchema(many=True)
 
 
+class PurchaseLogSchema2(ma.Schema):
+    id = fields.Integer()
+    customer_id = fields.Integer()
+    timestamp = fields.DateTime()
+    fields = fields.List(fields.Nested(PurchaseItemSchema(only=(
+        "id", "product_id", "field_id", "price", "start_time", "end_time"
+        ))))
+
+
+purchase_log2_schema = PurchaseLogSchema2()
+purchase_log2s_schema = PurchaseLogSchema2(many=True)
+
+
+class TimingDiscount(db.Model):
+    __tablename__ = "TimingDiscount"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    discount_type = db.Column(db.String(200), nullable=False)
+    discount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.Boolean, default=False)
+    # promo_codes = db.relationship("PromoCode", backref="timingdiscount", lazy=True)
+
+    def __init__(self, start_time, end_time, discount_type, discount, status):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.discount_type = discount_type
+        self.discount = discount
+        self.status = status
+
+
+class TimingDiscountSchema(ma.Schema):
+    id = fields.Integer()
+    start_time = fields.Time(required=True)
+    end_time = fields.Time(required=True)
+    discount_type = fields.String(required=True)
+    discount = fields.Float(required=True)
+    status = fields.Boolean()
+
+
+timingdiscount_schema = TimingDiscountSchema()
+timingdiscounts_schema = TimingDiscountSchema(many=True)
+
+
+def insert_data(target, connection, **kw):
+    connection.execute(target.insert(), {'id': 1, 'start_time': '12:00', 'end_time': '13:00', 'discount_type': 'Percent', 'discount': 20, 'status': False})
+
+
+event.listen(TimingDiscount.__table__, 'after_create', insert_data)
+
+
 class Venue(db.Model):
     __tablename__ = "Venue"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(200), nullable=False, unique=True) # "Kallang05"
-    field_type = db.Column(db.String(200), nullable=False, unique=True) # "5-A-Side" / "7-A-Side"
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False) 
     updated_at = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     # odoo_id = db.Column(db.Integer, nullable=False)
