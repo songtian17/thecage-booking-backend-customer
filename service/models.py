@@ -238,6 +238,7 @@ class PitchSchema(ma.Schema):
     odoo_id = fields.Integer()
 
 
+
 pitch_schema = PitchSchema()
 pitches_schema = PitchSchema(many=True)
 
@@ -497,6 +498,13 @@ class PurchaseLogSchema(ma.Schema):
 purchase_log_schema = PurchaseLogSchema()
 purchase_logs_schema = PurchaseLogSchema(many=True)
 
+class PurchaseLogSchema2(ma.Schema):
+    id = fields.Integer()
+    customer_id = fields.Integer()
+    timestamp = fields.DateTime()
+    fields = fields.List(fields.Nested(PurchaseItemSchema(only=(
+        "id", "product_id", "field_id", "price", "start_time", "end_time"
+        ))))
 
 class PurchaseLogSchema2(ma.Schema):
     id = fields.Integer()

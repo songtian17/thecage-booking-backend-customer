@@ -4,3 +4,5 @@ flask-marshmallow
 bcrypt
 jwt
 marshmallow-sqlalchemy
+marshmallow-sqlalchemy
+flask_cors
