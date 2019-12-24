@@ -20,6 +20,7 @@ def index():
     return "Hello World!"
 
 import service.routes.calendar
+import service.routes.checkout
 import service.routes.customer
 import service.routes.customerodoo
 import service.routes.signin

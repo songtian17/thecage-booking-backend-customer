@@ -454,10 +454,11 @@ class PurchaseItem(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
 
-    def __init__(self, purchase_log_id, product_id, field_id, price, start_time, end_time):
+    def __init__(self, purchase_log_id, product_id, field_id, pitch_id, price, start_time, end_time):
         self.purchase_log_id = purchase_log_id
         self.product_id = product_id
         self.field_id = field_id
+        self.pitch_id = pitch_id
         self.price = price
         self.start_time = start_time
         self.end_time = end_time
