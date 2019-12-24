@@ -225,10 +225,9 @@ class Pitch(db.Model):
     name = db.Column(db.String(200), nullable=False)
     odoo_id = db.Column(db.Integer)
 
-    def __init__(self, name, field_id, odoo_id):
+    def __init__(self, name, field_id):
         self.name = name
         self.field_id = field_id
-        self.odoo_id = odoo_id
 
 
 class PitchSchema(ma.Schema):
@@ -451,11 +450,15 @@ class PurchaseItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey(
         "Product.id"), nullable=False)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
+    pitch_id = db.Column(db.Integer, db.ForeignKey("Pitch.id"), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    start_time = db.Column(db.Time, nullable=False)
-    end_time = db.Column(db.Time, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
 
-    def __init__(self, price, start_time, end_time):
+    def __init__(self, purchase_log_id, product_id, field_id, price, start_time, end_time):
+        self.purchase_log_id = purchase_log_id
+        self.product_id = product_id
+        self.field_id = field_id
         self.price = price
         self.start_time = start_time
         self.end_time = end_time
@@ -466,9 +469,10 @@ class PurchaseItemSchema(ma.Schema):
     purchase_log_id = fields.Integer()
     product_id = fields.Integer()
     field_id = fields.Integer()
+    pitch_id = fields.Integer()
     price = fields.Float(required=True)
-    start_time = fields.Time(required=True)
-    end_time = fields.Time(required=True)
+    start_time = fields.DateTime(required=True)
+    end_time = fields.DateTime(required=True)
 
 
 purchase_item_schema = PurchaseItemSchema()
@@ -497,6 +501,7 @@ class PurchaseLogSchema(ma.Schema):
 
 purchase_log_schema = PurchaseLogSchema()
 purchase_logs_schema = PurchaseLogSchema(many=True)
+
 
 class PurchaseLogSchema2(ma.Schema):
     id = fields.Integer()
