@@ -19,6 +19,7 @@ migrate = Migrate(app, db)
 def index():
     return "Hello World!"
 
+import service.routes.bookinghistory
 import service.routes.calendar
 import service.routes.checkout
 import service.routes.customer
