@@ -1,4 +1,6 @@
 flask
 Flask-SQLAlchemy
 flask-marshmallow
+bcrypt
+jwt
 marshmallow-sqlalchemy
