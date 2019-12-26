@@ -6,7 +6,10 @@ from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from instance.config import sender_email, sender_password
 
+from flask_cors import CORS
+
 app = Flask(__name__, instance_relative_config=True, template_folder="templates")
+CORS(app, allow_headers='*')
 app.config.from_object("config")  # config.py
 app.config.from_pyfile("config.py")  # instance/config.py
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -42,5 +45,6 @@ import service.routes.forgetpassword
 import service.routes.signin
 import service.routes.signup
 import service.routes.salesordercreate
+import service.routes.venue
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
