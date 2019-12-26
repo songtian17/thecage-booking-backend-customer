@@ -1,5 +1,5 @@
 from service import app
-from flask import request
+from flask import request, jsonify
 from service.models import Customer, customers_schema
 import bcrypt
 import jwt
@@ -40,10 +40,15 @@ def signin():
     for p in result:
         if p["email"] == login_email:
             hashed_password = p["password"]
+            login_username = p["name"]
             if bcrypt.checkpw(
                 login_password.encode("utf-8"), hashed_password.encode("utf-8")
             ):
                 token = jwt.encode({"name": login_email}, key, algorithm="HS256")
-                return token
+                stringtoken = token.decode("utf-8")
+                return {
+                    "user": login_username,
+                    "token": stringtoken
+                }
 
     return "Login Failed", 401
