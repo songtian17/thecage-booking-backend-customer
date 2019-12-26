@@ -29,5 +29,6 @@ import service.routes.customerodoo
 import service.routes.signin
 import service.routes.signup
 import service.routes.salesordercreate
+import service.routes.venue
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
