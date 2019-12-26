@@ -116,10 +116,10 @@ class Customer(db.Model):
     promocode_logs = db.relationship(
         "PromoCodeLog", backref="customer", lazy=True)
 
-    def __init__(self, email, password, name, phone_no):
+    def __init__(self, email, name, password, phone_no):
         self.email = email
-        self.password = password
         self.name = name
+        self.password = password
         self.phone_no = phone_no
 
 
