@@ -11,7 +11,7 @@ def signin():
 
     req_data = request.get_json()
 
-    login_username = req_data["username"]
+    login_email = req_data["email"]
     login_password = req_data["password"]
     hashed_password = ""
 
@@ -38,12 +38,12 @@ def signin():
     customer = Customer.query.all()
     result = customers_schema.dump(customer)
     for p in result:
-        if p["name"] == login_username:
+        if p["email"] == login_email:
             hashed_password = p["password"]
             if bcrypt.checkpw(
                 login_password.encode("utf-8"), hashed_password.encode("utf-8")
             ):
-                token = jwt.encode({"name": login_username}, key, algorithm="HS256")
+                token = jwt.encode({"name": login_email}, key, algorithm="HS256")
                 return token
 
     return "Login Failed", 401
