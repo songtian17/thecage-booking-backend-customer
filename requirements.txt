@@ -1,5 +1,6 @@
 flask
 Flask-SQLAlchemy
+Flask-Mail
 flask-marshmallow
 bcrypt
 jwt

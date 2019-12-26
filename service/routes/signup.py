@@ -18,7 +18,7 @@ def signup():
 
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(register_password.encode("utf8"), salt)
-    print("hashed pw", hashed_password)
+    # print("hashed pw", hashed_password)
 
     # print("hashed pw", hashed_password)
 
