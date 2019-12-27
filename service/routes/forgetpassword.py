@@ -19,7 +19,6 @@ def forget():
         customer = Customer.query.filter_by(email=input_email).first_or_404()
     except:
         abort(400)
-    print(customer.email)
     send_reset_email(customer.email)
     return json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'}
 
@@ -31,9 +30,12 @@ def send_reset_email(email):
     password_reset_serializer = URLSafeTimedSerializer(key)
 
     password_reset_url = url_for(
-        'reset',
+        'validate',
         token=password_reset_serializer.dumps(email, salt='password-reset-salt'),
         _external=True)
+
+    # host_to_replace = (password_reset_url[password_reset_url.find("//")+2:password_reset_url.find("/validate")])
+    # password_reset_url = password_reset_url.replace(host_to_replace, 'localhost')
 
     html = render_template(
         "emailpasswordreset.html",
@@ -45,12 +47,11 @@ def send_reset_email(email):
         recipients=[email])
     msg.html = html
     mail.send(msg)
-    print(password_reset_url)
     return json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'}
 
 
-@app.route("/reset", methods=["GET", 'POST'])
-def reset():
+@app.route("/validate", methods=["GET", 'POST'])
+def validate():
     file = open("instance/key.key", "rb")
     key = file.read()
     file.close()
@@ -65,15 +66,23 @@ def reset():
     return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
 
 
-@app.route("/resetpassword/<Id>", methods=["PUT"])
-def reset_password(Id):
-    customer = Customer.query.get(Id)
+@app.route("/resetpassword", methods=["PUT"])
+def reset_password():
+
+    file = open("instance/key.key", "rb")
+    key = file.read()
+    file.close()
 
     new_password = request.json["password"]
+    input_jwt = request.json["jwt"]
+
+    customer_id = jwt.decode(input_jwt, key, algorithms='HS256')
 
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(new_password.encode("utf8"), salt)
     new_hashed_password = hashed_password.decode("utf8")
+
+    customer = Customer.query.get(customer_id['customer_id'])
 
     customer.password = new_hashed_password
     db.session.commit()
