@@ -41,10 +41,11 @@ def signin():
         if p["email"] == login_email:
             hashed_password = p["password"]
             login_username = p["name"]
+            id = p["id"]
             if bcrypt.checkpw(
                 login_password.encode("utf-8"), hashed_password.encode("utf-8")
             ):
-                token = jwt.encode({"name": login_email}, key, algorithm="HS256")
+                token = jwt.encode({"customer_id": id}, key, algorithm="HS256")
                 stringtoken = token.decode("utf-8")
                 return {
                     "user": login_username,
