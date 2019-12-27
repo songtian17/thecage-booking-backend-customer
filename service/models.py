@@ -298,16 +298,13 @@ class PromoCode(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
     promo_code_logs = db.relationship(
-        "PromoCodeLog", backref="promocode", lazy=True)
+        "PromoCodeLog", backref="promocode", lazy=True, cascade="all, delete")
     promo_code_valid_products = db.relationship(
-        "PromoCodeValidProduct", backref="promocode", lazy=True
-    )
+        "PromoCodeValidProduct", backref="promocode", lazy=True, cascade="all, delete")
     promo_code_valid_timings = db.relationship(
-        "PromoCodeValidTiming", backref="promocode", lazy=True
-    )
+        "PromoCodeValidTiming", backref="promocode", lazy=True, cascade="all, delete")
     promo_code_valid_locations = db.relationship(
-        "PromoCodeValidLocation", backref="promocode", lazy=True
-    )
+        "PromoCodeValidLocation", backref="promocode", lazy=True, cascade="all, delete")
 
     def __init__(self, code, valid_from, valid_to, usage_limit, uses_left, usage_per_user, discount_type, discount, created_at, updated_at):
         self.code = code
@@ -569,7 +566,7 @@ class Venue(db.Model):
     # odoo_id = db.Column(db.Integer, nullable=False)
     fields = db.relationship("Field", backref="venue", lazy=True, cascade="all, delete")
     promo_code_valid_locations = db.relationship(
-        "PromoCodeValidLocation", backref="venue", lazy=True
+        "PromoCodeValidLocation", backref="venue", lazy=True, cascade="all, delete"
     )
 
     def __init__(self, name, created_at, updated_at):
