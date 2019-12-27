@@ -291,7 +291,7 @@ class PromoCode(db.Model):
     valid_from = db.Column(db.DateTime, default=datetime.now, nullable=False)
     valid_to = db.Column(db.DateTime, default=datetime.now, nullable=False)
     usage_limit = db.Column(db.Integer, nullable=False)
-    uses_left = db.Column(db.Integer, nullable=False)
+    times_used = db.Column(db.Integer, nullable=False)
     usage_per_user = db.Column(db.Integer, nullable=False)
     discount_type = db.Column(db.String(200), nullable=False)
     discount = db.Column(db.Float, nullable=False) 
@@ -306,12 +306,12 @@ class PromoCode(db.Model):
     promo_code_valid_locations = db.relationship(
         "PromoCodeValidLocation", backref="promocode", lazy=True, cascade="all, delete")
 
-    def __init__(self, code, valid_from, valid_to, usage_limit, uses_left, usage_per_user, discount_type, discount, created_at, updated_at):
+    def __init__(self, code, valid_from, valid_to, usage_limit, times_used, usage_per_user, discount_type, discount, created_at, updated_at):
         self.code = code
         self.valid_from = valid_from
         self.valid_to = valid_to
         self.usage_limit = usage_limit
-        self.uses_left = uses_left
+        self.times_used = times_used
         self.usage_per_user = usage_per_user
         self.discount_type = discount_type
         self.discount = discount
@@ -401,7 +401,7 @@ class PromoCodeSchema(ma.Schema):
     valid_from = fields.DateTime(required=True)
     valid_to = fields.DateTime(required=True)
     usage_limit = fields.Integer(required=True)
-    uses_left = fields.Integer(required=True)
+    times_used = fields.Integer(required=True)
     usage_per_user = fields.Integer(required=True)
     discount = fields.Integer(required=True)
     discount_type = fields.String(required=True)
