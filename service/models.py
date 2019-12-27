@@ -64,6 +64,16 @@ announcement_schema = AnnouncementSchema()
 announcements_schema = AnnouncementSchema(many=True)
 
 
+class AnnouncementSchema2(ma.Schema):
+    html_string = fields.String(required=True)
+    placement = fields.String(required=True)
+    visibility = fields.Boolean()
+
+
+announcement2_schema = AnnouncementSchema2
+announcement2s_schema = AnnouncementSchema2(many=True)
+
+
 def insert_data(target, connection, **kw):
     connection.execute(target.insert(), {'id': 1, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Top', 'visibility': False}, {'id': 2, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Bottom', 'visibility': True})
 

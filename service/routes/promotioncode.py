@@ -1,6 +1,6 @@
 from flask import jsonify
 from service import app
-from service import PromoCode, promo_code_schema, promo_codes_schema
+from service.models import PromoCode, promo_code_schema, promo_codes_schema
 
 # Get PromotionCodes
 @app.route("/promotioncodes", methods=['GET'])
