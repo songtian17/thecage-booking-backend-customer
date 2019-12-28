@@ -9,8 +9,8 @@ from itsdangerous import URLSafeTimedSerializer, exc
 from instance.config import sender_email
 
 
-@app.route("/forget", methods=["POST"])
-def forget():
+@app.route("/forgetpassword", methods=["POST"])
+def forget_password():
 
     req_data = request.get_json()
 
