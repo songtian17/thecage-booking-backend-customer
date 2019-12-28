@@ -48,6 +48,7 @@ def signin():
                 token = jwt.encode({"customer_id": id}, key, algorithm="HS256")
                 stringtoken = token.decode("utf-8")
                 return {
+                    "userId": id,
                     "user": login_username,
                     "token": stringtoken
                 }

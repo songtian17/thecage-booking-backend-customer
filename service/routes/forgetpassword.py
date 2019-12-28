@@ -30,7 +30,7 @@ def send_reset_email(email):
     password_reset_serializer = URLSafeTimedSerializer(key)
 
     password_reset_url = url_for(
-        'validate',
+        'validate_token',
         token=password_reset_serializer.dumps(email, salt='password-reset-salt'),
         _external=True)
 
@@ -50,8 +50,8 @@ def send_reset_email(email):
     return json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'}
 
 
-@app.route("/validate", methods=["GET", 'POST'])
-def validate():
+@app.route("/validatetoken", methods=["GET", 'POST'])
+def validate_token():
     file = open("instance/key.key", "rb")
     key = file.read()
     file.close()
@@ -66,7 +66,7 @@ def validate():
     return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
 
 
-@app.route("/resetpassword", methods=["PUT"])
+@app.route("/resetpassword", methods=["POST"])
 def reset_password():
 
     file = open("instance/key.key", "rb")
@@ -74,7 +74,7 @@ def reset_password():
     file.close()
 
     new_password = request.json["password"]
-    input_jwt = request.json["jwt"]
+    input_jwt = request.json["token"]
 
     customer_id = jwt.decode(input_jwt, key, algorithms='HS256')
 
