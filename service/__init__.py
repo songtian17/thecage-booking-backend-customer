@@ -46,5 +46,9 @@ import service.routes.signin
 import service.routes.signup
 import service.routes.salesordercreate
 import service.routes.venue
+import service.routes.announcement
+import service.routes.customtimeslot
+import service.routes.promotioncode
+import service.routes.product
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].

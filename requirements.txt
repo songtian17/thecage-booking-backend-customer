@@ -8,3 +8,4 @@ marshmallow-sqlalchemy
 marshmallow-sqlalchemy
 flask_cors
 psycopg2
+flask-mail
