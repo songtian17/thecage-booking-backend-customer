@@ -50,7 +50,7 @@ def send_reset_email(email):
     return json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'}
 
 
-@app.route("/validatetoken", methods=["GET", 'POST'])
+@app.route("/validatetoken", methods=["GET"])
 def validate_token():
     file = open("instance/key.key", "rb")
     key = file.read()
