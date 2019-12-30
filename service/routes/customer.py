@@ -2,6 +2,7 @@ from flask import request, jsonify
 from service import app
 from service.models import Customer, customer_schema, customers_schema
 import bcrypt
+import json
 from service import db
 
 # Create a Customer
@@ -41,20 +42,23 @@ def update_customer(Id):
     customer = Customer.query.get(Id)
 
     email = request.json["email"]
-    password = request.json["password"]
+    password = request.json["newPassword"]
+    old_password = request.json["oldPassword"]
     name = request.json["name"]
-    phone_no = request.json["phone_no"]
+    phone_no = request.json["phoneNo"]
 
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
-    password_decoded = hashed_password.decode("utf8")
+    if old_password == password:
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
+        password_decoded = hashed_password.decode("utf8")
 
-    customer.email = email
-    customer.password = password_decoded
-    customer.name = name
-    customer.phone_no = phone_no
-
-    db.session.commit()
+        customer.email = email
+        customer.password = password_decoded
+        customer.name = name
+        customer.phone_no = phone_no
+        db.session.commit()
+    else:
+        return json.dumps({'message': 'Passwords do not match'}), 200, {'ContentType': 'application/json'}
 
     return customer_schema.jsonify(customer)
 
