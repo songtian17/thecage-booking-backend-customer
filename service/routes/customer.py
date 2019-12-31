@@ -40,13 +40,18 @@ def get_customer(Id):
 @app.route("/customer/<Id>", methods=["PUT"])
 def update_customer(Id):
     customer = Customer.query.get(Id)
-    password = ""
-    old_password = ""
+    password = request.json["newPassword"]
+    old_password = request.json["oldPassword"]
     email = request.json["email"]
     name = request.json["name"]
     phone_no = request.json["phoneNo"]
 
-    if "oldPassword" in request.form:
+    if password is None:
+        customer.email = email
+        customer.name = name
+        customer.phone_no = phone_no
+        db.session.commit()
+    else:
         password = request.json["newPassword"]
         old_password = request.json["oldPassword"]
 
@@ -64,11 +69,6 @@ def update_customer(Id):
             db.session.commit()
         else:
             return json.dumps({'message': 'Passwords do not match'}), 400, {'ContentType': 'application/json'}
-    else:
-        customer.email = email
-        customer.name = name
-        customer.phone_no = phone_no
-        db.session.commit()
 
     return customer_schema.jsonify(customer)
 
