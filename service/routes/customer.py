@@ -40,25 +40,35 @@ def get_customer(Id):
 @app.route("/customer/<Id>", methods=["PUT"])
 def update_customer(Id):
     customer = Customer.query.get(Id)
-
+    password = ""
+    old_password = ""
     email = request.json["email"]
-    password = request.json["newPassword"]
-    old_password = request.json["oldPassword"]
     name = request.json["name"]
     phone_no = request.json["phoneNo"]
 
-    if old_password == password:
-        salt = bcrypt.gensalt()
-        hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
-        password_decoded = hashed_password.decode("utf8")
+    if "oldPassword" in request.form:
+        password = request.json["newPassword"]
+        old_password = request.json["oldPassword"]
 
+        if bcrypt.checkpw(
+            old_password.encode("utf-8"), customer.password.encode("utf-8")
+        ):
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
+            password_decoded = hashed_password.decode("utf8")
+
+            customer.email = email
+            customer.password = password_decoded
+            customer.name = name
+            customer.phone_no = phone_no
+            db.session.commit()
+        else:
+            return json.dumps({'message': 'Passwords do not match'}), 400, {'ContentType': 'application/json'}
+    else:
         customer.email = email
-        customer.password = password_decoded
         customer.name = name
         customer.phone_no = phone_no
         db.session.commit()
-    else:
-        return json.dumps({'message': 'Passwords do not match'}), 200, {'ContentType': 'application/json'}
 
     return customer_schema.jsonify(customer)
 
