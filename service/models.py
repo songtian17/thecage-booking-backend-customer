@@ -120,11 +120,11 @@ class Customer(db.Model):
     name = db.Column(db.String(200), nullable=False)
     phone_no = db.Column(db.String(200), nullable=False, unique=True)
     customer_odoos = db.relationship(
-        "CustomerOdoo", backref="customer", lazy=True)
+        "CustomerOdoo", backref="customer", lazy=True, cascade="all, delete")
     purchase_logs = db.relationship(
-        "PurchaseLog", backref="customer", lazy=True)
+        "PurchaseLog", backref="customer", lazy=True, cascade="all, delete")
     promocode_logs = db.relationship(
-        "PromoCodeLog", backref="customer", lazy=True)
+        "PromoCodeLog", backref="customer", lazy=True, cascade="all, delete")
 
     def __init__(self, email, name, password, phone_no):
         self.email = email
@@ -137,7 +137,7 @@ class CustomerSchema(ma.Schema):
     id = fields.Integer()
     email = fields.String(required=True)
     name = fields.String(required=True)
-    password = fields.String(required=True)
+    # password = fields.String(required=True)
     phone_no = fields.String(required=True)
 
 
@@ -270,10 +270,10 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     odoo_id = db.Column(db.Integer, nullable=False)
     promo_code_valid_products = db.relationship(
-        "PromoCodeValidProduct", backref="product", lazy=True
+        "PromoCodeValidProduct", backref="product", lazy=True, cascade="all, delete"
     )
     purchase_items = db.relationship(
-        "PurchaseItem", backref="product", lazy=True)
+        "PurchaseItem", backref="product", lazy=True, cascade="all, delete")
 
     def __init__(self, name, price, odoo_id):
         self.name = name
@@ -499,7 +499,7 @@ class PurchaseLog(db.Model):
         "Customer.id"), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
     purchase_items = db.relationship(
-        "PurchaseItem", backref="purchaselog", lazy=True)
+        "PurchaseItem", backref="purchaselog", lazy=True, cascade="all, delete")
 
     def __init__(self, customer_id, timestamp):
         self.timestamp = timestamp
