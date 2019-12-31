@@ -40,8 +40,8 @@ def get_customer(Id):
 @app.route("/customer/<Id>", methods=["PUT"])
 def update_customer(Id):
     customer = Customer.query.get(Id)
-    password = request.json["newPassword"]
-    old_password = request.json["oldPassword"]
+    password = request.json.get("newPassword")
+    old_password = request.json.get("oldPassword")
     email = request.json["email"]
     name = request.json["name"]
     phone_no = request.json["phoneNo"]
