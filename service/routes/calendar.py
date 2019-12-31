@@ -34,8 +34,12 @@ def route1():
                 ["venue_id", "=", result["odoo_id"]],
             ]
         ],
-        {"fields": ["id", "booking_start", "booking_end", "pitch_id", "venue_id"]},
+        {"fields": ["id", "booking_start", "booking_end", "pitch_id"]},
     )
-    # for model_result in model_results:
-    #     print(model_result, file=sys.stdout)
+    for result in model_results:
+        print(result["pitch_id"][0])
+        db_pitch = Pitch.query.filter_by(odoo_id=result["pitch_id"][0]).first()
+        print(db_pitch.odoo_id)
+        result["pitch_id"] = db_pitch.odoo_id
+    print (model_results)
     return json.dumps(model_results)
