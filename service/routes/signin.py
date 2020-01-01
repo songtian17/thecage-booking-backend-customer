@@ -52,5 +52,6 @@ def signin():
                     "user": login_username,
                     "token": stringtoken
                 }
-
+            else:
+                return "Wrong Password", 400
     return "Login Failed", 401

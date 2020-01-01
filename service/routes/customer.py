@@ -4,6 +4,8 @@ from service.models import Customer, customer_schema, customers_schema
 import bcrypt
 import json
 from service import db
+from parse import parse
+from sqlalchemy import exc
 
 # Create a Customer
 @app.route("/customer", methods=["POST"])
@@ -58,15 +60,21 @@ def update_customer(Id):
         if bcrypt.checkpw(
             old_password.encode("utf-8"), customer.password.encode("utf-8")
         ):
-            salt = bcrypt.gensalt()
-            hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
-            password_decoded = hashed_password.decode("utf8")
+            try:
+                salt = bcrypt.gensalt()
+                hashed_password = bcrypt.hashpw(password.encode("utf8"), salt)
+                password_decoded = hashed_password.decode("utf8")
 
-            customer.email = email
-            customer.password = password_decoded
-            customer.name = name
-            customer.phone_no = phone_no
-            db.session.commit()
+                customer.email = email
+                customer.password = password_decoded
+                customer.name = name
+                customer.phone_no = phone_no
+                db.session.commit()
+            except exc.IntegrityError as e:
+                dupe_field = parse('duplicate key value violates unique constraint "{constraint}"\nDETAIL:  Key ({field})=({input}) already exists.\n', str(e.orig))["field"]
+                print(dupe_field)
+                return json.dumps({'message': f'{dupe_field} already exists'}), 400, {'ContentType': 'application/json'}
+
         else:
             return json.dumps({'message': 'Passwords do not match'}), 400, {'ContentType': 'application/json'}
 

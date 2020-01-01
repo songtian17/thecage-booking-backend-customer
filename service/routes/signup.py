@@ -3,6 +3,9 @@ from flask import request, jsonify
 from service.models import Customer, customer_schema
 from service import db
 import bcrypt
+from sqlalchemy import exc
+from parse import parse
+import json
 
 # import json
 
@@ -15,35 +18,17 @@ def signup():
     register_password = req_data["password"]
     register_email = req_data["email"]
     register_phone = req_data["phone"]
-
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(register_password.encode("utf8"), salt)
-    # print("hashed pw", hashed_password)
-
-    # print("hashed pw", hashed_password)
-
-    # file = open("instance/hashedpw.txt", "w+")
-    # file.write(hashed_password.decode("utf-8"))
-    # file.close()
-    register_password = hashed_password.decode("utf8")
-
-    # new_customer = {}
-    # new_customer["customer"] = []
-    # new_customer["customer"].append(
-    #     {
-    #         "username": register_username,
-    #         "email": register_email,
-    #         "password": hashed_password.decode("utf-8"),
-    #         "phone": register_phone,
-    #     }
-    # )
-
-    # with open("instance/customers.txt", "w") as outfile:
-    #     json.dump(new_customer, outfile)
-    new_customer = Customer(
-        register_email, register_username, register_password, register_phone
-    )
-
-    db.session.add(new_customer)
-    db.session.commit()
+    try:
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(register_password.encode("utf8"), salt)
+        register_password = hashed_password.decode("utf8")
+        new_customer = Customer(
+            register_email, register_username, register_password, register_phone
+        )
+        db.session.add(new_customer)
+        db.session.commit()
+    except exc.IntegrityError as e:
+        dupe_field = parse('duplicate key value violates unique constraint "{constraint}"\nDETAIL:  Key ({field})=({input}) already exists.\n', str(e.orig))["field"]
+        print(dupe_field)
+        return json.dumps({'message': f'{dupe_field} already exists'}), 400, {'ContentType': 'application/json'}
     return customer_schema.jsonify(new_customer)
