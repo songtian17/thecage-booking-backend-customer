@@ -97,15 +97,17 @@ class CartItem(db.Model):
     start_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
     end_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey("Product.id"), nullable=False)
+    expiry_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     amount = db.Column(db.Float, nullable=False)
     discount_amount = db.Column(db.Float, nullable=False)
 
-    def __init__(self, venue_id, field_id, customer_id, start_time, end_time, product_id, amount, discount_amount):
+    def __init__(self, venue_id, field_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount):
         self.venue_id = venue_id
         self.field_id = field_id
         self.customer_id = customer_id
         self.start_time = start_time
         self.end_time = end_time
+        self.expiry_date = expiry_date
         self.product_id = product_id
         self.amount = amount
         self.discount_amount = discount_amount
@@ -118,6 +120,7 @@ class CartItemSchema(ma.Schema):
     customer_id = fields.Integer(required=True)
     start_time = fields.DateTime(required=True)
     end_time = fields.DateTime(required=True)
+    expiry_date = fields.DateTime(required=True)
     product_id = fields.DateTime(required=True)
     amount = fields.Float(required=True)
     discount_amount = fields.Float(required=True)
