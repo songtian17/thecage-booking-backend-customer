@@ -273,7 +273,11 @@ pitches_schema = PitchSchema(many=True)
 class FieldSchema2(ma.Schema):
     id = fields.Integer()
     name = fields.String(required=True)
+    venue_id = fields.Integer()
     odoo_id = fields.Integer(required=True)
+    field_type = fields.String(required=True)
+    num_pitches = fields.Integer()
+    colour = fields.String(required=True)
     pitches = fields.List(fields.Nested(PitchSchema(only=("id", "name", "odoo_id"))))
 
 
