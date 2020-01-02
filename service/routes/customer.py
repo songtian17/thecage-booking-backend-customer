@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from service import app
-from service.models import Customer, customer_schema, customers_schema
+from service.models import Customer, customer_schema, customers_schema, customers_schema2, customer_schema2
 import bcrypt
 import json
 from service import db
@@ -27,7 +27,7 @@ def add_customer():
 @app.route("/customer", methods=["GET"])
 def get_customers():
     all_admins = Customer.query.all()
-    result = customers_schema.dump(all_admins)
+    result = customers_schema2.dump(all_admins)
     return jsonify(result)
 
 
@@ -35,7 +35,7 @@ def get_customers():
 @app.route("/customer/<Id>", methods=["GET"])
 def get_customer(Id):
     customer = Customer.query.get(Id)
-    return customer_schema.jsonify(customer)
+    return customer_schema2.jsonify(customer)
 
 
 # Update a Customer
@@ -83,7 +83,7 @@ def update_customer(Id):
         else:
             return json.dumps({'message': 'Passwords do not match'}), 400, {'ContentType': 'application/json'}
 
-    return customer_schema.jsonify(customer)
+    return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
 
 
 # Delete Customer
@@ -93,4 +93,4 @@ def delete_customer(Id):
     db.session.delete(customer)
     db.session.commit()
 
-    return customer_schema.jsonify(customer)
+    return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
