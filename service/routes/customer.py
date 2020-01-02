@@ -48,11 +48,22 @@ def update_customer(Id):
     name = request.json["name"]
     phone_no = request.json["phoneNo"]
 
+    other_customers = Customer.query.filter(Customer.id != Id).all()
+    for other_customer in other_customers:
+        if other_customer.email == email:
+            return json.dumps({'message': 'email already exists'}), 400, {'ContentType': 'application/json'}
+        if other_customer.phone_no == phone_no:
+            return json.dumps({'message': 'phone_no already exists'}), 400, {'ContentType': 'application/json'}
+
     if password is None:
-        customer.email = email
-        customer.name = name
-        customer.phone_no = phone_no
-        db.session.commit()
+        try:
+            customer.email = email
+            customer.name = name
+            customer.phone_no = phone_no
+            db.session.commit()
+        except exc.IntegrityError as e:
+            dupe_field = parse('duplicate key value violates unique constraint "{constraint}"\nDETAIL:  Key ({field})=({input}) already exists.\n', str(e.orig))["field"]
+            return json.dumps({'message': f'{dupe_field} already exists'}), 400, {'ContentType': 'application/json'}
     else:
         password = request.json["newPassword"]
         old_password = request.json["oldPassword"]
