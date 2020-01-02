@@ -72,9 +72,8 @@ def update_cartitem(Id):
     code_id = cartitem.promocode_id
     print(code_id)
 
-    promocode = PromoCode.query.get(code_id)
-
-    if promocode is not None:
+    if code_id is not None:
+        promocode = PromoCode.query.get(code_id)
         x = promocode.discount_type
         if x == "Percentage":
             discount_amount = (100-promocode.discount)*amount/100
@@ -82,6 +81,8 @@ def update_cartitem(Id):
             discount_amount = (amount - promocode.discount)
         else:
             discount_amount = amount
+    else:
+        discount_amount = amount
 
     cartitem.product_id = product_id
     cartitem.discount_amount = discount_amount
