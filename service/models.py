@@ -88,6 +88,45 @@ def insert_data(target, connection, **kw):
 event.listen(Announcement.__table__, 'after_create', insert_data)
 
 
+class CartItem(db.Model):
+    __tablename__ = "CartItem"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
+    field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("Customer.id"), nullable=False)
+    start_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    end_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("Product.id"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    discount_amount = db.Column(db.Float, nullable=False)
+
+    def __init__(self, venue_id, field_id, customer_id, start_time, end_time, product_id, amount, discount_amount):
+        self.venue_id = venue_id
+        self.field_id = field_id
+        self.customer_id = customer_id
+        self.start_time = start_time
+        self.end_time = end_time
+        self.product_id = product_id
+        self.amount = amount
+        self.discount_amount = discount_amount
+
+
+class CartItemSchema(ma.Schema):
+    id = fields.Integer()
+    venue_id = fields.Integer(required=True)
+    field_id = fields.Integer(required=True)
+    customer_id = fields.Integer(required=True)
+    start_time = fields.DateTime(required=True)
+    end_time = fields.DateTime(required=True)
+    product_id = fields.DateTime(required=True)
+    amount = fields.Float(required=True)
+    discount_amount = fields.Float(required=True)
+
+
+cart_item_schema = CartItemSchema()
+cart_items_schema = CartItemSchema(many=True)
+
+
 class CustomTimeSlot(db.Model):
     __tablename__ = "CustomTimeSlot"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
