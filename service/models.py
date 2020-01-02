@@ -93,6 +93,8 @@ class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
+    pitch_id = db.Column(db.Integer, db.ForeignKey("Pitch.id"), nullable=False)
+    promocode_id = db.Column(db.Integer, db.ForeignKey("PromoCode.id"))
     customer_id = db.Column(db.Integer, db.ForeignKey("Customer.id"), nullable=False)
     start_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
     end_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
@@ -101,9 +103,11 @@ class CartItem(db.Model):
     amount = db.Column(db.Float, nullable=False)
     discount_amount = db.Column(db.Float, nullable=False)
 
-    def __init__(self, venue_id, field_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount):
+    def __init__(self, venue_id, field_id, pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount):
         self.venue_id = venue_id
         self.field_id = field_id
+        self.pitch_id = pitch_id
+        self.promocode_id = promocode_id
         self.customer_id = customer_id
         self.start_time = start_time
         self.end_time = end_time
@@ -117,11 +121,13 @@ class CartItemSchema(ma.Schema):
     id = fields.Integer()
     venue_id = fields.Integer(required=True)
     field_id = fields.Integer(required=True)
+    pitch_id = fields.Integer(required=True)
+    promo_code_id = fields.Integer()
     customer_id = fields.Integer(required=True)
     start_time = fields.DateTime(required=True)
     end_time = fields.DateTime(required=True)
     expiry_date = fields.DateTime(required=True)
-    product_id = fields.DateTime(required=True)
+    product_id = fields.Integer(required=True)
     amount = fields.Float(required=True)
     discount_amount = fields.Float(required=True)
 
@@ -174,6 +180,8 @@ class Customer(db.Model):
         "PurchaseLog", backref="customer", lazy=True, cascade="all, delete")
     promocode_logs = db.relationship(
         "PromoCodeLog", backref="customer", lazy=True, cascade="all, delete")
+    cart_item = db.relationship(
+        "CartItem", backref="customer", lazy=True, cascade="all, delete")
 
     def __init__(self, email, name, password, phone_no):
         self.email = email
@@ -243,7 +251,8 @@ class Field(db.Model):
     odoo_id = db.Column(db.Integer, nullable=False)
     custom_timeslots = db.relationship(
         "CustomTimeSlot", backref="field", lazy=True, cascade="all, delete")
-    pitches = db.relationship("Pitch", backref="Pitch", lazy=True, cascade="all, delete")
+    pitches = db.relationship("Pitch", backref="field", lazy=True, cascade="all, delete")
+    cart_item = db.relationship("CartItem", backref="field", lazy=True, cascade="all, delete")
 
     def __init__(self, name, venue_id, field_type, num_pitches, colour, created_at, updated_at, odoo_id):
         self.name = name
@@ -294,6 +303,7 @@ class Pitch(db.Model):
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     odoo_id = db.Column(db.Integer)
+    cart_item = db.relationship("CartItem", backref="pitch", lazy=True, cascade="all, delete")
 
     def __init__(self, name, field_id, odoo_id):
         self.name = name
@@ -338,6 +348,8 @@ class Product(db.Model):
     )
     purchase_items = db.relationship(
         "PurchaseItem", backref="product", lazy=True, cascade="all, delete")
+    cart_item = db.relationship(
+        "CartItem", backref="product", lazy=True, cascade="all, delete")
 
     def __init__(self, name, price, odoo_id):
         self.name = name
@@ -379,6 +391,9 @@ class PromoCode(db.Model):
         "PromoCodeValidTiming", backref="promocode", lazy=True, cascade="all, delete")
     promo_code_valid_locations = db.relationship(
         "PromoCodeValidLocation", backref="promocode", lazy=True, cascade="all, delete")
+    cart_item = db.relationship(
+        "CartItem", backref="promocode", lazy=True, cascade="all, delete"
+    )
 
     def __init__(self, code, valid_from, valid_to, usage_limit, times_used, usage_per_user, discount_type, discount, created_at, updated_at):
         self.code = code
@@ -642,6 +657,7 @@ class Venue(db.Model):
     promo_code_valid_locations = db.relationship(
         "PromoCodeValidLocation", backref="venue", lazy=True, cascade="all, delete"
     )
+    cart_item = db.relationship("CartItem", backref="venue", lazy=True, cascade="all, delete")
 
     def __init__(self, name, created_at, updated_at):
         self.name = name
