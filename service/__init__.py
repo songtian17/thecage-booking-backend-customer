@@ -50,5 +50,6 @@ import service.routes.announcement
 import service.routes.customtimeslot
 import service.routes.promotioncode
 import service.routes.product
+import service.routes.field
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
