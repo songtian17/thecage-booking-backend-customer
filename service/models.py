@@ -136,6 +136,19 @@ cart_item_schema = CartItemSchema()
 cart_items_schema = CartItemSchema(many=True)
 
 
+class CartItemSchema2(ma.Schema):
+    id = fields.Integer()
+    venue_id = fields.Integer(required=True)
+    field_id = fields.Integer(required=True)
+    pitch_id = fields.Integer(required=True)
+    start_time = fields.DateTime(required=True)
+    end_time = fields.DateTime(required=True)
+
+
+cart_item2_schema = CartItemSchema2()
+cart_item2s_schema = CartItemSchema2(many=True)
+
+
 class CustomTimeSlot(db.Model):
     __tablename__ = "CustomTimeSlot"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

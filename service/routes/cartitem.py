@@ -1,6 +1,6 @@
 from service import app
 from flask import jsonify, request
-from service.models import Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, PromoCode
+from service.models import Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, PromoCode
 from datetime import datetime, timedelta
 from service import db
 import jwt
@@ -92,7 +92,7 @@ def update_cartitem(Id):
 
     return cart_item_schema.jsonify(cartitem)
 
-# Get
+# Get customer's cart items
 @app.route("/cartitem", methods=["GET"])
 def get_cartitem():
     token = request.headers["token"]
@@ -105,6 +105,14 @@ def get_cartitem():
 
     cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
     result = cart_items_schema.dump(cartitems)
+    return jsonify(result)
+
+# Get all cart items
+@app.route("/allcartitems", methods=["GET"])
+def get_allcartitems():
+
+    cartitems = CartItem.query.filter(CartItem.expiry_date > datetime.now()).all()
+    result = cart_item2s_schema.dump(cartitems)
     return jsonify(result)
 
 # Get cartitem by Id
