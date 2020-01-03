@@ -3,11 +3,19 @@ from flask import request, jsonify
 from service import app
 from datetime import datetime
 from service import db
+import jwt
 
 
 @app.route("/checkout", methods=["POST"])
 def checkout():
-    customer_id = request.json["customerId"]
+    token = request.headers["token"]
+
+    file = open("instance/key.key", "rb")
+    key = file.read()
+    file.close()
+
+    customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
+
     timestamp = datetime.now()
     new_purchase_log = PurchaseLog(customer_id, timestamp)
 

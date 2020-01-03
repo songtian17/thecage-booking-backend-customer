@@ -15,19 +15,27 @@ from flask import request, jsonify
 from service import app
 from datetime import datetime
 from service import db
+import jwt
 
 
-@app.route("/bookinghistory/<Id>", methods=["GET"])
-def get_bookinghistory(Id):
+@app.route("/bookinghistory/", methods=["GET"])
+def get_bookinghistory():
+    token = request.headers["token"]
     current_purchase_log_id = -1
     timestamp_now = datetime.now()
     purchaselog_ids = []
     purchaseitem_logids = []
     return_list = []
 
+    file = open("instance/key.key", "rb")
+    key = file.read()
+    file.close()
+
+    customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
+
     purchase_log = (
         PurchaseLog.query.order_by(PurchaseLog.timestamp.desc())
-        .filter_by(customer_id=Id)
+        .filter_by(customer_id=customer_id)
         .all()
     )
     results_purchase_log = purchase_log2s_schema.dump(purchase_log)
@@ -47,7 +55,7 @@ def get_bookinghistory(Id):
             if current_purchase_log_id not in purchaseitem_logids:
                 purchase_log = (
                     PurchaseLog.query.order_by(PurchaseLog.timestamp.desc())
-                    .filter_by(customer_id=Id, id=current_purchase_log_id)
+                    .filter_by(customer_id=customer_id, id=current_purchase_log_id)
                     .all()
                 )
                 results_purchase_log = purchase_log2s_schema.dump(purchase_log)
