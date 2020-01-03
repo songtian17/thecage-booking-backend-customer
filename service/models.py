@@ -343,6 +343,8 @@ class Product(db.Model):
     name = db.Column(db.String(200), unique=True, nullable=False)
     price = db.Column(db.Float, nullable=False)
     odoo_id = db.Column(db.Integer, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
     promo_code_valid_products = db.relationship(
         "PromoCodeValidProduct", backref="product", lazy=True, cascade="all, delete"
     )
@@ -351,10 +353,12 @@ class Product(db.Model):
     cart_item = db.relationship(
         "CartItem", backref="product", lazy=True, cascade="all, delete")
 
-    def __init__(self, name, price, odoo_id):
+    def __init__(self, name, price, odoo_id, start_time, end_time):
         self.name = name
         self.price = price
         self.odoo_id = odoo_id
+        self.start_time = start_time
+        self.end_time = end_time
 
 
 class ProductSchema(ma.Schema):
@@ -362,6 +366,8 @@ class ProductSchema(ma.Schema):
     name = fields.String(required=True)
     price = fields.Float(required=True)
     odoo_id = fields.Integer(required=True)
+    start_time = fields.DateTime(required=True)
+    end_time = fields.DateTime(required=True)
 
 
 product_schema = ProductSchema()
