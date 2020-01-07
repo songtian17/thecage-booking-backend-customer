@@ -356,8 +356,8 @@ class Product(db.Model):
     name = db.Column(db.String(200), unique=True, nullable=False)
     price = db.Column(db.Float, nullable=False)
     odoo_id = db.Column(db.Integer, nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
     promo_code_valid_products = db.relationship(
         "PromoCodeValidProduct", backref="product", lazy=True, cascade="all, delete"
     )
