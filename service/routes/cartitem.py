@@ -13,28 +13,31 @@ def add_cartitem():
     tokenstr = request.headers["Authorization"]
     items = request.json["items"]
     for i in items:
-        venue_name = i["venue"]
-        field_type = i["field"]
-        pitch_name = i["pitch"]
+        pitch_id = i["pitchId"]
         start_time = i["timeStart"]
         end_time = i["timeEnd"]
         expiry_date = datetime.now() + timedelta(minutes=20)
         product_name = i["product"]   
         code_name = i.get("code")
 
-        venue = Venue.query.filter_by(name=venue_name).first()
+        # venue = Venue.query.filter_by(name=venue_name).first()
 
-        venue_id = venue.id
+        # venue_id = venue.id
 
         product = Product.query.filter_by(name=product_name).first()
         product_id = product.id
         amount = product.price
 
-        field = Field.query.filter_by(field_type=field_type, venue_id=venue_id).first()
-        field_id = field.id
+        # field = Field.query.filter_by(field_type=field_type, venue_id=venue_id).first()
+        # field_id = field.id
 
-        pitch = Pitch.query.filter_by(name=pitch_name, field_id=field_id).first()
-        pitch_id = pitch.id
+        pitch = Pitch.query.get(pitch_id)
+        new_pitch_id = pitch.id
+
+        field_id = pitch.field_id
+        field = Field.query.get(field_id)
+
+        venue_id = field.venue_id
 
         promocode = PromoCode.query.filter_by(code=code_name).first()
         promocode_id = promocode.id
@@ -56,7 +59,7 @@ def add_cartitem():
         token = tokenstr[1]
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
-        newcartitem = CartItem(venue_id, field_id, pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount)
+        newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount)
         db.session.add(newcartitem)
 
     db.session.commit()
