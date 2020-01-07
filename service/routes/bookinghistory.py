@@ -20,7 +20,7 @@ import jwt
 
 @app.route("/bookinghistory/", methods=["GET"])
 def get_bookinghistory():
-    token = request.headers["token"]
+    tokenstr = request.headers["Authorization"]
     current_purchase_log_id = -1
     timestamp_now = datetime.now()
     purchaselog_ids = []
@@ -30,7 +30,8 @@ def get_bookinghistory():
     file = open("instance/key.key", "rb")
     key = file.read()
     file.close()
-
+    tokenstr = tokenstr.split(" ")
+    token = tokenstr[1]
     customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
     purchase_log = (
