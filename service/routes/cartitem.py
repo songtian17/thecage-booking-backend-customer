@@ -10,7 +10,7 @@ import json
 # Create
 @app.route("/cartitem", methods=["POST"])
 def add_cartitem():
-    token = request.headers["token"]
+    tokenstr = request.headers["Authorization"]
     items = request.json["items"]
     for i in items:
         venue_name = i["venue"]
@@ -52,7 +52,8 @@ def add_cartitem():
         file = open("instance/key.key", "rb")
         key = file.read()
         file.close()
-
+        tokenstr = tokenstr.split(" ")
+        token = tokenstr[1]
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
         newcartitem = CartItem(venue_id, field_id, pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount)
@@ -98,12 +99,13 @@ def add_cartitem():
 # Get customer's cart items
 @app.route("/cartitem", methods=["GET"])
 def get_cartitem():
-    token = request.headers["token"]
+    tokenstr = request.headers["Authorization"]
 
     file = open("instance/key.key", "rb")
     key = file.read()
     file.close()
-
+    tokenstr = tokenstr.split(" ")
+    token = tokenstr[1]
     customerid = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
     cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
