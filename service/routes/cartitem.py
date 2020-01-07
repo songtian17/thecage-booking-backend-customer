@@ -14,8 +14,8 @@ def add_cartitem():
     for i in items:
         tokenstr = request.headers["Authorization"]
         pitch_id = i["pitchId"]
-        start_time = i["timeStart"]
-        end_time = i["timeEnd"]
+        start_time = i["booking_start"]
+        end_time = i["booking_end"]
         expiry_date = datetime.now() + timedelta(minutes=20)
         product_id = i["productId"]   
         code_name = i.get("code")
