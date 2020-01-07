@@ -53,7 +53,8 @@ def add_cartitem():
         
         else:
             promocode_id = None
-
+            discount_amount = amount
+            
         file = open("instance/key.key", "rb")
         key = file.read()
         file.close()
