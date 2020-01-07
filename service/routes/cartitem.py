@@ -17,15 +17,14 @@ def add_cartitem():
         start_time = i["timeStart"]
         end_time = i["timeEnd"]
         expiry_date = datetime.now() + timedelta(minutes=20)
-        product_name = i["product"]   
+        product_id = i["productId"]   
         code_name = i.get("code")
 
         # venue = Venue.query.filter_by(name=venue_name).first()
 
         # venue_id = venue.id
 
-        product = Product.query.filter_by(name=product_name).first()
-        product_id = product.id
+        product = Product.query.get(product_id)
         amount = product.price
 
         # field = Field.query.filter_by(field_type=field_type, venue_id=venue_id).first()
