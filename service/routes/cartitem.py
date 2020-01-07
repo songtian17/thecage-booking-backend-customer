@@ -39,17 +39,20 @@ def add_cartitem():
         venue_id = field.venue_id
 
         promocode = PromoCode.query.filter_by(code=code_name).first()
-        promocode_id = promocode["id"]
 
         if code_name is not None:
+            promocode_id = promocode.id
             promocode = PromoCode.query.filter_by(code=code_name).first()
-            x = promocode["discount_type"]
+            x = promocode.discount_type
             if x == "Percentage":
                 discount_amount = (100-promocode.discount)*amount/100
             elif x == "Price":
                 discount_amount = (amount - promocode.discount)
             else:
                 discount_amount = amount
+        
+        else:
+            promocode_id = None
 
         file = open("instance/key.key", "rb")
         key = file.read()
