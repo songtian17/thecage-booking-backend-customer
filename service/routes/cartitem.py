@@ -10,9 +10,9 @@ import json
 # Create
 @app.route("/cartitem", methods=["POST"])
 def add_cartitem():
-    tokenstr = request.headers["Authorization"]
     items = request.json["items"]
     for i in items:
+        tokenstr = request.headers["Authorization"]
         pitch_id = i["pitchId"]
         start_time = i["timeStart"]
         end_time = i["timeEnd"]
