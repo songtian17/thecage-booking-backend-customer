@@ -379,8 +379,8 @@ class ProductSchema(ma.Schema):
     name = fields.String(required=True)
     price = fields.Float(required=True)
     odoo_id = fields.Integer(required=True)
-    start_time = fields.DateTime(required=True)
-    end_time = fields.DateTime(required=True)
+    start_time = fields.Time(required=True)
+    end_time = fields.Time(required=True)
 
 
 product_schema = ProductSchema()
