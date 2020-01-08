@@ -1,6 +1,6 @@
 from service import app
 from flask import jsonify, request
-from service.models import Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, PromoCode
+from service.models import Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, field2_schema, fields2_schema, venue_schema, product_schema, pitch_schema, PromoCode
 from datetime import datetime, timedelta
 from service import db
 import jwt
@@ -105,6 +105,7 @@ def add_cartitem():
 # Get customer's cart items
 @app.route("/cartitem", methods=["GET"])
 def get_cartitem():
+    return_list = {}
     tokenstr = request.headers["Authorization"]
 
     file = open("instance/key.key", "rb")
@@ -113,10 +114,38 @@ def get_cartitem():
     tokenstr = tokenstr.split(" ")
     token = tokenstr[1]
     customerid = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
-
-    cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
+    # cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
+    cartitems = CartItem.query.filter_by(customer_id=customerid).all()
     result = cart_items_schema.dump(cartitems)
-    return jsonify(result)
+    return_list.setdefault('items', [])
+    for one_result in result:
+
+        one_result["fieldType"] = one_result.pop("field_id")
+        one_result["pitchName"] = one_result.pop("pitch_id")
+        one_result["productName"] = one_result.pop("product_id")
+        one_result["venueName"] = one_result.pop("venue_id")
+        one_result["discountAmount"] = one_result.pop("discount_amount")
+        one_result["startTime"] = one_result.pop("start_time")
+        one_result["endTime"] = one_result.pop("end_time")
+
+        field = Field.query.filter_by(id=one_result["fieldType"]).first()
+        result = field2_schema.dump(field)
+        one_result["fieldType"] = result["field_type"]
+
+        pitch = Pitch.query.filter_by(id=one_result["pitchName"]).first()
+        result = pitch_schema.dump(pitch)
+        one_result["pitchName"] = result["name"]
+
+        product = Product.query.filter_by(id=one_result["productName"]).first()
+        result = product_schema.dump(product)
+        one_result["productName"] = result["name"]
+
+        venue = Venue.query.filter_by(id=one_result["venueName"]).first()
+        result = venue_schema.dump(venue)
+        one_result["venueName"] = result["name"]
+
+        return_list['items'].append(one_result)
+    return jsonify(return_list)
 
 # Get all cart items
 @app.route("/allcartitems", methods=["GET"])
