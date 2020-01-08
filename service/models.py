@@ -101,9 +101,9 @@ class CartItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey("Product.id"), nullable=False)
     expiry_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     amount = db.Column(db.Float, nullable=False)
-    discount_amount = db.Column(db.Float, nullable=False)
+    discounted_amount = db.Column(db.Float, nullable=False)
 
-    def __init__(self, venue_id, field_id, pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount):
+    def __init__(self, venue_id, field_id, pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discounted_amount):
         self.venue_id = venue_id
         self.field_id = field_id
         self.pitch_id = pitch_id
@@ -114,7 +114,7 @@ class CartItem(db.Model):
         self.expiry_date = expiry_date
         self.product_id = product_id
         self.amount = amount
-        self.discount_amount = discount_amount
+        self.discounted_amount = discounted_amount
 
 
 class CartItemSchema(ma.Schema):
@@ -129,7 +129,7 @@ class CartItemSchema(ma.Schema):
     expiry_date = fields.DateTime(required=True)
     product_id = fields.Integer(required=True)
     amount = fields.Float(required=True)
-    discount_amount = fields.Float(required=True)
+    discounted_amount = fields.Float(required=True)
 
 
 cart_item_schema = CartItemSchema()

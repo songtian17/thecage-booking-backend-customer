@@ -45,15 +45,15 @@ def add_cartitem():
             promocode = PromoCode.query.filter_by(code=code_name).first()
             x = promocode.discount_type
             if x == "Percentage":
-                discount_amount = (100-promocode.discount)*amount/100
+                discounted_amount = (100-promocode.discount)*amount/100
             elif x == "Price":
-                discount_amount = (amount - promocode.discount)
+                discounted_amount = (amount - promocode.discount)
             else:
-                discount_amount = amount
+                discounted_amount = amount
         
         else:
             promocode_id = None
-            discount_amount = amount
+            discounted_amount = amount
             
         file = open("instance/key.key", "rb")
         key = file.read()
@@ -62,7 +62,7 @@ def add_cartitem():
         token = tokenstr[1]
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
-        newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discount_amount)
+        newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discounted_amount)
         db.session.add(newcartitem)
 
     db.session.commit()
