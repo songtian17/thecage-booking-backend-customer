@@ -124,7 +124,7 @@ def get_cartitem():
         one_result["pitchName"] = one_result.pop("pitch_id")
         one_result["productName"] = one_result.pop("product_id")
         one_result["venueName"] = one_result.pop("venue_id")
-        one_result["discountAmount"] = one_result.pop("discount_amount")
+        one_result["discountAmount"] = one_result.pop("discounted_amount")
         one_result["startTime"] = one_result.pop("start_time")
         one_result["endTime"] = one_result.pop("end_time")
 
