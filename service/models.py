@@ -436,8 +436,10 @@ class PromoCodeLog(db.Model):
         "Customer.id"), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
-    def __init__(self, timestamp):
+    def __init__(self, timestamp, promo_code_id, customer_id):
         self.timestamp = timestamp
+        self.promo_code_id = promo_code_id
+        self.customer_id = customer_id
 
 
 class PromoCodeLogSchema(ma.Schema):
