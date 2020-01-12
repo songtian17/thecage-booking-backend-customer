@@ -1,4 +1,4 @@
-from service.models import PurchaseLog, PurchaseItem, purchase_log_schema, purchase_logs_schema, purchase_log2_schema, purchase_log2s_schema, purchase_item_schema, purchase_items_schema
+from service.models import PurchaseLog, PurchaseItem, purchase_log_schema, purchase_logs_schema, purchase_log2_schema, purchase_log2s_schema, purchase_item_schema, purchase_items_schema, PromoCodeLog, PromoCode
 from flask import request, jsonify
 from service import app
 from datetime import datetime
@@ -23,6 +23,16 @@ def checkout():
     db.session.add(new_purchase_log)
     db.session.flush()
     purchaselog_id = new_purchase_log.id
+    code = request.json.get("promoCode")
+    if code is None:
+        print("no promo code") 
+    else:
+        promocode = PromoCode.query.filter_by(code=code).first()
+        promocode_id = promocode.id
+        promocode.times_used += 1
+        new_promo_code_log = PromoCodeLog(timestamp, promocode_id, customer_id)
+        db.session.add(new_promo_code_log)
+        db.session.commit()
 
     items = request.json["items"]
     for i in items:
