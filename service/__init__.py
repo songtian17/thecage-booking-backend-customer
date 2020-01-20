@@ -3,7 +3,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_marshmallow import Marshmallow
-from flask_migrate import Migrate
 from instance.config import sender_email, sender_password
 
 from flask_cors import CORS
@@ -17,7 +16,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-migrate = Migrate(app, db)
 
 app.config.update(dict(
     DEBUG = True,
