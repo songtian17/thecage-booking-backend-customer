@@ -10,3 +10,4 @@ flask_cors
 psycopg2
 flask-mail
 parse
+paypalrestsdk
