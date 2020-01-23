@@ -18,7 +18,7 @@ from service import db
 import jwt
 
 
-@app.route("/bookinghistory/", methods=["GET"])
+@app.route("/bookinghistory", methods=["GET"])
 def get_bookinghistory():
     tokenstr = request.headers["Authorization"]
     current_purchase_log_id = -1
