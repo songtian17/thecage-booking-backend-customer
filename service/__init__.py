@@ -51,5 +51,6 @@ import service.routes.product
 import service.routes.field
 import service.routes.pitch
 import service.routes.cartitem
+import service.routes.paypal
 
 # Now we can access the configuration variables via app.config["VAR_NAME"].
