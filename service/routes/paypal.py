@@ -3,11 +3,12 @@ import paypalrestsdk
 from service import app
 from service.models import Venue, Field, Pitch, Product, CartItem, cart_items_schema
 import jwt
+from instance.config import client_id, client_secret
 
 paypalrestsdk.configure({
   "mode": "sandbox",  # sandbox or live
-  "client_id": "ASA4ybdyLNfxxHHIqPRZCIMZglI-0K8e58wS6SVjsaapSZ-gS_nGVJbuZxYTvJ0kiTQogMya3iHbGH9p",
-  "client_secret": "EFdDfOYOWBsCZwDHbmODAXI9o4b1886hNfvXx6Savr35rmEMQQqkVaWP5KuGGczzs-DsMSIkjcKqy5LM"})
+  "client_id": client_id,
+  "client_secret": client_secret})
 
 @app.route('/payment', methods=['POST'])
 def payment():
@@ -30,7 +31,7 @@ def payment():
         item["name"] = product.name
         item["sku"] = product.id
         item["price"] = result["discounted_amount"]
-        item["description"] = f'{result["venue_id"]}{result["field_id"]}{result["pitch_id"]}{result["start_time"]}{result["end_time"]}'
+        item["description"] = f'venue_id: {result["venue_id"]}, field_id: {result["field_id"]}, pitch_id: {result["pitch_id"]}, start_time: {result["start_time"]}, end_time: {result["end_time"]}'
         item["currency"] = "SGD"
         item["quantity"] = 1
         items_list.append(item)
@@ -46,13 +47,6 @@ def payment():
         "transactions": [{
             "item_list": {
                 "items": items_list},
-                # "items": [{
-                #     "name": "testitem",
-                #     "sku": "12345",
-                #     "price": "10.00",
-                #     "description": "",
-                #     "currency": "SGD",
-                #     "quantity": 1}]},
             "amount": {
                 "total": str(total_amount),
                 "currency": "SGD"},
