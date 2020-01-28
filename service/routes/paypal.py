@@ -28,10 +28,16 @@ def payment():
     for result in results:
         item = {}
         product = Product.query.get(result["product_id"])
+        pitch = Pitch.query.get(result["pitch_id"])
+        pitch_name = pitch.name
+        field = Field.query.get(result["field_id"])
+        field_name = field.name
+        venue = Venue.query.get(result["venue_id"])
+        venue_name = venue.name
         item["name"] = product.name
         item["sku"] = product.id
         item["price"] = result["discounted_amount"]
-        item["description"] = f'venue_id: {result["venue_id"]}, field_id: {result["field_id"]}, pitch_id: {result["pitch_id"]}, start_time: {result["start_time"]}, end_time: {result["end_time"]}'
+        item["description"] = f'venue_name: {venue_name}, venue_id: {result["venue_id"]}, field_name: {field_name}, field_id: {result["field_id"]}, pitch_name: {pitch_name}, pitch_id: {result["field_id"]}, start_time: {result["start_time"]}, end_time: {result["end_time"]}'
         item["currency"] = "SGD"
         item["quantity"] = 1
         items_list.append(item)
