@@ -39,21 +39,22 @@ def add_cartitem():
         venue_id = field.venue_id
 
         promocode = PromoCode.query.filter_by(code=code_name).first()
-
+        no_of_hours = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') - datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds()/3600
+        new_amount = amount*no_of_hours
         if code_name is not None:
             promocode_id = promocode.id
             promocode = PromoCode.query.filter_by(code=code_name).first()
             x = promocode.discount_type
-            if x == "Percentage":
-                discounted_amount = (100-promocode.discount)*amount/100
+            if x == "Percent":
+                discounted_amount = (100-promocode.discount)*new_amount/100
             elif x == "Price":
-                discounted_amount = (amount - promocode.discount)
+                discounted_amount = (new_amount - promocode.discount)
             else:
-                discounted_amount = amount
+                discounted_amount = new_amount
         
         else:
             promocode_id = None
-            discounted_amount = amount
+            discounted_amount = new_amount
             
         file = open("instance/key.key", "rb")
         key = file.read()
@@ -62,7 +63,7 @@ def add_cartitem():
         token = tokenstr[1]
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
-        newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, amount, discounted_amount)
+        newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, new_amount, discounted_amount)
         db.session.add(newcartitem)
 
     db.session.commit()
