@@ -173,7 +173,7 @@ def delete_cartitem(Id):
 
 
 # Delete all cart items by customerId
-@app.route("/cartitem/delete", methods=["DELETE"])
+@app.route("/cartitem", methods=["DELETE"])
 def delete_all_cartitems():
     tokenstr = request.headers["Authorization"]
 
