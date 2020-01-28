@@ -50,11 +50,11 @@ def add_cartitem():
                 discounted_amount = (amount - promocode.discount)
             else:
                 discounted_amount = amount
-        
+
         else:
             promocode_id = None
             discounted_amount = amount
-            
+
         file = open("instance/key.key", "rb")
         key = file.read()
         file.close()
@@ -71,7 +71,7 @@ def add_cartitem():
 # Update
 # @app.route("/cartitem/<Id>", methods=["PUT"])
 # def update_cartitem(Id):
-#     cartitem = CartItem.query.get(Id) 
+#     cartitem = CartItem.query.get(Id)
 #     product_name = request.json["product"]
 
     
@@ -166,6 +166,24 @@ def get_cartitem_by_id(Id):
 def delete_cartitem(Id):
     cartitem = CartItem.query.get(Id)
     db.session.delete(cartitem)
+    db.session.commit()
+
+    return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
+
+
+# Delete all cart items by customerId
+@app.route("/cartitem/delete", methods=["DELETE"])
+def delete_all_cartitems():
+    tokenstr = request.headers["Authorization"]
+
+    file = open("instance/key.key", "rb")
+    key = file.read()
+    file.close()
+    tokenstr = tokenstr.split(" ")
+    token = tokenstr[1]
+    customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
+    print(customer_id)
+    CartItem.query.filter_by(customer_id=customer_id).delete()
     db.session.commit()
 
     return (json.dumps({'message': 'success'}), 200, {'ContentType': 'application/json'})
