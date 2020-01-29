@@ -24,7 +24,7 @@ def payment():
     customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
     items_list = []
-    cartitem = CartItem.query.filter_by(customer_id=customer_id).all()
+    cartitem = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).all()
     results = cart_items_schema.dump(cartitem)
     # print(results)
     total_amount = 0
