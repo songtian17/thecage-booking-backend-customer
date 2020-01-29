@@ -158,6 +158,7 @@ def execute():
             booking_end = datetime.strftime(end_time-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
             product_name = (Product.query.get(product_id)).name
             product_odoo_id = (Product.query.get(product_id)).odoo_id
+            pitch_odoo_id = (Pitch.query.get(pitch_id)).odoo_id
             venue_id = (Field.query.get(field_id)).venue_id
 
             # create in odoo
@@ -176,7 +177,7 @@ def execute():
                         "name": product_name,
                         "order_id": int(sales_order_id),
                         "product_id": int(product_odoo_id),
-                        "pitch_id": int(pitch_id),
+                        "pitch_id": int(pitch_odoo_id),
                         "venue_id": int(venue_id),
                         "booking_state": "in_progress",
                         "partner_id": int(customer_odoo_odoo_id)
