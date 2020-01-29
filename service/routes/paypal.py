@@ -79,13 +79,13 @@ def execute():
     if payment.execute({'payer_id': request.form['payerID']}):
 
         # assign variables
-        # tokenstr = request.headers["Authorization"]
+        tokenstr = request.headers["Authorization"]
         file = open("instance/key.key", "rb")
         key = file.read()
         file.close()
-        # tokenstr = tokenstr.split(" ")
-        # token = tokenstr[1]
-        token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXN0b21lcl9pZCI6Mn0.MkKvNiKexNTrVWIuYCcBb7NLiWt3NgjRqBn4ifB9SgU"
+        tokenstr = tokenstr.split(" ")
+        token = tokenstr[1]
+        # token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXN0b21lcl9pZCI6Mn0.MkKvNiKexNTrVWIuYCcBb7NLiWt3NgjRqBn4ifB9SgU"
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
         timestamp = datetime.now()
         timestamp_utc = datetime.now()-timedelta(hours=8)
