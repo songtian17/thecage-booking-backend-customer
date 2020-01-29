@@ -73,12 +73,13 @@ def execute():
     if payment.execute({'payer_id': request.form['payerID']}):
 
         # assign variables
-        tokenstr = request.headers["Authorization"]
+        # tokenstr = request.headers["Authorization"]
         file = open("instance/key.key", "rb")
         key = file.read()
         file.close()
-        tokenstr = tokenstr.split(" ")
-        token = tokenstr[1]
+        # tokenstr = tokenstr.split(" ")
+        # token = tokenstr[1]
+        token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXN0b21lcl9pZCI6Mn0.MkKvNiKexNTrVWIuYCcBb7NLiWt3NgjRqBn4ifB9SgU"
         customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
         timestamp = datetime.now()
         timestamp_utc = datetime.now()-timedelta(hours=8)
@@ -115,7 +116,10 @@ def execute():
         )
 
         # check and/or update promo code usage
-        code = request.json.get("promoCode")
+        cartitems = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).all()
+        cartitem = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).first()
+        code = cartitem.promocode_id
+        # code = request.json.get("promoCode")
         if code is None:
             print("no promo code")
         else:
@@ -127,24 +131,25 @@ def execute():
             db.session.commit()
 
         # purchase item
-        items = request.json["items"]
-        for i in items:
+        # items = request.json["items"]
+        for i in cartitems:
             # create in postgres
             purchase_log_id = purchaselog_id
-            product_id = i["productId"]
-            field_id = i["fieldId"]
-            pitch_id = i["pitchId"]
-            price = i["price"]
-            start_time = i["startTime"]
-            end_time = i["endTime"]
+            product_id = i.product_id
+            field_id = i.field_id
+            pitch_id = i.pitch_id
+            price = i.discounted_amount
+            start_time = i.start_time
+            end_time = i.end_time
             new_purchase_item = PurchaseItem(purchase_log_id, product_id, field_id, pitch_id, price, start_time, end_time)
             db.session.add(new_purchase_item)
             db.session.commit()
 
             # assigning more variables
-            product_qty = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') - datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds()/3600
-            booking_start = datetime.strftime(datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
-            booking_end = datetime.strftime(datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+            # product_qty = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') - datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds()/3600
+            product_qty = (end_time - start_time).total_seconds()/3600
+            booking_start = datetime.strftime(start_time-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+            booking_end = datetime.strftime(end_time-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
             product_name = (Product.query.get(product_id)).name
             product_odoo_id = (Product.query.get(product_id)).odoo_id
             venue_id = (Field.query.get(field_id)).venue_id
@@ -179,11 +184,13 @@ def execute():
             )
             print(json.dumps(model_results))
 
-        return (request.json)
-
+            CartItem.query.filter_by(customer_id=customer_id).delete()
+            db.session.commit()
         print('Execute success!')
         success = True
+
     else:
         print(payment.error)
+        return json.dumps({'message': 'Booking error'}), 400, {'ContentType': 'application/json'}
 
     return jsonify({'success': success})

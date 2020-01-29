@@ -115,8 +115,8 @@ def get_cartitem():
     tokenstr = tokenstr.split(" ")
     token = tokenstr[1]
     customerid = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
-    # cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
-    cartitems = CartItem.query.filter_by(customer_id=customerid).all()
+    cartitems = CartItem.query.filter_by(customer_id=customerid).filter(CartItem.expiry_date > datetime.now()).all()
+    # cartitems = CartItem.query.filter_by(customer_id=customerid).all()
     result = cart_items_schema.dump(cartitems)
     return_list.setdefault('items', [])
     for one_result in result:
