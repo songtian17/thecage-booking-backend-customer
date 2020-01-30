@@ -73,6 +73,13 @@ def get_bookinghistory():
             product = Product.query.get(i['product_id'])
             i['product_id'] = product.name
 
+            i['endTime'] = i.pop('end_time')
+            i['fieldId'] = i.pop('field_id')
+            i['pitchId'] = i.pop('pitch_id')
+            i['productId'] = i.pop('product_id')
+            i['purchaseLogId'] = i.pop('purchase_log_id')
+            i['startTime'] = i.pop('start_time')
+
         #                 log['details'].append(i)
         #             return_list.append(log)
         #         purchaseitem_logids.append(result.purchase_log_id)
