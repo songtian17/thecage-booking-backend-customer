@@ -51,30 +51,31 @@ def get_bookinghistory():
             .all()
         )
         results_purchase_item = purchase_items_schema.dump(purchase_item)
-        for result in purchase_item:
-            current_purchase_log_id = result.purchase_log_id
-            if current_purchase_log_id not in purchaseitem_logids:
-                purchase_log = (
-                    PurchaseLog.query.order_by(PurchaseLog.timestamp.desc())
-                    .filter_by(customer_id=customer_id, id=current_purchase_log_id)
-                    .all()
-                )
-                results_purchase_log = purchase_log2s_schema.dump(purchase_log)
-                for log in results_purchase_log:
-                    log.setdefault('details', [])
-                    for i in results_purchase_item:
+        for i in results_purchase_item:
+        #     current_purchase_log_id = result.purchase_log_id
+        #     if current_purchase_log_id not in purchaseitem_logids:
+        #         purchase_log = (
+        #             PurchaseLog.query.order_by(PurchaseLog.timestamp.desc())
+        #             .filter_by(customer_id=customer_id, id=current_purchase_log_id)
+        #             .all()
+        #         )
+        #         results_purchase_log = purchase_log2s_schema.dump(purchase_log)
+        #         for log in results_purchase_log:
+        #             log.setdefault('details', [])
+        #             for i in results_purchase_item:
 
-                        pitch = Pitch.query.get(i['pitch_id'])
-                        i['pitch_id'] = pitch.name
+            pitch = Pitch.query.get(i['pitch_id'])
+            i['pitch_id'] = pitch.name
 
-                        field = Field.query.get(i['field_id'])
-                        i['field_name'] = field.name
+            field = Field.query.get(i['field_id'])
+            i['field_name'] = field.name
 
-                        product = Product.query.get(i['product_id'])
-                        i['product_id'] = product.name
+            product = Product.query.get(i['product_id'])
+            i['product_id'] = product.name
 
-                        log['details'].append(i)
-                    return_list.append(log)
-                purchaseitem_logids.append(result.purchase_log_id)
+        #                 log['details'].append(i)
+        #             return_list.append(log)
+        #         purchaseitem_logids.append(result.purchase_log_id)
+        return (jsonify(results_purchase_item))
 
     return jsonify(return_list)
