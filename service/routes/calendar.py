@@ -7,7 +7,7 @@ from instance.config import url, db, username, password
 from flask import request
 
 
-@app.route("/calendar/day", methods=["GET"])
+@app.route("/calendar/day", methods=["POST"])
 def route1():
     model_result = ""
     req_data = request.get_json()
