@@ -191,8 +191,8 @@ def execute():
             )
             print(json.dumps(model_results))
 
-            CartItem.query.filter_by(customer_id=customer_id).delete()
-            db.session.commit()
+        CartItem.query.filter_by(customer_id=customer_id).delete()
+        db.session.commit()
         print('Execute success!')
         success = True
 
