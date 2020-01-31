@@ -15,6 +15,7 @@ def route1():
 
     booking_date = req_data["bookingDate"]
     booking_date_minus8 = datetime.strftime(datetime.strptime(booking_date, '%Y-%m-%d') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+    booking_date_nextday = datetime.strftime(datetime.strptime(booking_date_minus8, '%Y-%m-%d %H:%M:%S') + timedelta(days=1), '%Y-%m-%d %H:%M:%S')
     field_id = req_data["fieldId"]
 
     result_fields = Field.query.filter_by(id=field_id).first()
@@ -32,7 +33,7 @@ def route1():
         [
             [
                 ["booking_start", ">=", booking_date_minus8],
-                ["booking_end", "<=", booking_date_minus8],
+                ["booking_end", "<=", booking_date_nextday],
                 ["venue_id", "=", result["odoo_id"]],
             ]
         ],
