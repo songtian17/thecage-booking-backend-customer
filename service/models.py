@@ -2,8 +2,6 @@
 from datetime import datetime
 from service import db, ma
 from marshmallow import fields
-from sqlalchemy import event
-
 
 class Admin(db.Model):
     __tablename__ = "Admin"
@@ -32,13 +30,6 @@ class AdminSchema(ma.Schema):
 
 admin_schema = AdminSchema()
 admins_schema = AdminSchema(many=True)
-
-
-def insert_data(target, connection, **kw):
-    connection.execute(target.insert(), {'id': 1, 'user_id': 'admin', 'password': 'password', 'role': 'SuperAdmin'})
-
-
-event.listen(Admin.__table__, 'after_create', insert_data)
 
 
 class Announcement(db.Model):
@@ -79,13 +70,6 @@ class AnnouncementSchema2(ma.Schema):
 
 announcement2_schema = AnnouncementSchema2
 announcement2s_schema = AnnouncementSchema2(many=True)
-
-
-def insert_data(target, connection, **kw):
-    connection.execute(target.insert(), {'id': 1, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Top', 'visibility': False}, {'id': 2, 'html_string': 'hello', 'markdown_string': 'hello', 'placement': 'Bottom', 'visibility': True})
-
-
-event.listen(Announcement.__table__, 'after_create', insert_data)
 
 
 class CartItem(db.Model):
@@ -365,7 +349,9 @@ class Product(db.Model):
         "PurchaseItem", backref="product", lazy=True, cascade="all, delete")
     cart_item = db.relationship(
         "CartItem", backref="product", lazy=True, cascade="all, delete")
-
+    product_valid_day = db.relationship(
+        "ProductValidDay", backref="product", lazy=True, cascade="all, delete")
+    
     def __init__(self, name, price, odoo_id, start_time, end_time):
         self.name = name
         self.price = price
@@ -386,6 +372,24 @@ class ProductSchema(ma.Schema):
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
 
+class ProductValidDay(db.Model):
+    __tablename__ = "ProductValidDay"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        "Product.id"), nullable=False)
+    day_of_week = db.Column(db.String(200), nullable=False)
+
+    def __init__(self, product_id, day_of_week):
+        self.product_id = product_id
+        self.day_of_week = day_of_week
+
+class ProductValidDaySchema(ma.Schema):
+    id = fields.Integer()
+    product_id = fields.Integer()
+    day_of_week = fields.String(required=True)
+
+product_valid_day_schema = ProductValidDaySchema()
+product_valid_days_schema = ProductValidDaySchema(many=True)
 
 class PromoCode(db.Model):
     __tablename__ = "PromoCode"
@@ -563,15 +567,17 @@ class PurchaseItem(db.Model):
         "Product.id"), nullable=False)
     field_id = db.Column(db.Integer, db.ForeignKey("Field.id"), nullable=False)
     pitch_id = db.Column(db.Integer, db.ForeignKey("Pitch.id"), nullable=False)
+    original_price = db.Column(db.Float, nullable=False)
     price = db.Column(db.Float, nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
 
-    def __init__(self, purchase_log_id, product_id, field_id, pitch_id, price, start_time, end_time):
+    def __init__(self, purchase_log_id, product_id, field_id, pitch_id, original_price, price, start_time, end_time):
         self.purchase_log_id = purchase_log_id
         self.product_id = product_id
         self.field_id = field_id
         self.pitch_id = pitch_id
+        self.original_price = original_price
         self.price = price
         self.start_time = start_time
         self.end_time = end_time
@@ -583,6 +589,7 @@ class PurchaseItemSchema(ma.Schema):
     product_id = fields.Integer()
     field_id = fields.Integer()
     pitch_id = fields.Integer()
+    original_price = fields.Float(required=True)
     price = fields.Float(required=True)
     start_time = fields.DateTime(required=True)
     end_time = fields.DateTime(required=True)
@@ -658,13 +665,6 @@ class TimingDiscountSchema(ma.Schema):
 
 timingdiscount_schema = TimingDiscountSchema()
 timingdiscounts_schema = TimingDiscountSchema(many=True)
-
-
-def insert_data(target, connection, **kw):
-    connection.execute(target.insert(), {'id': 1, 'start_time': '12:00', 'end_time': '13:00', 'discount_type': 'Percent', 'discount': 20, 'status': False})
-
-
-event.listen(TimingDiscount.__table__, 'after_create', insert_data)
 
 
 class Venue(db.Model):
