@@ -5,6 +5,7 @@ import json
 from service.models import Venue, Field, field_schema, fields_schema, fields2_schema, field3_schema, fields3_schema, Pitch
 from instance.config import url, db, username, password
 from flask import request
+from datetime import datetime, timedelta
 
 
 @app.route("/calendar/day", methods=["POST"])
@@ -40,6 +41,8 @@ def route1():
         # print(result["pitch_id"][0])
         db_pitch = Pitch.query.filter_by(odoo_id=result["pitch_id"][0]).first()
         # print(db_pitch.odoo_id)
+        result['booking_start'] = datetime.strftime(datetime.strptime(result['booking_start'], '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+        result['booking_end'] = datetime.strftime(datetime.strptime(result['booking_end'], '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
         result["pitch_id"] = db_pitch.odoo_id
     # print (model_results)
     return json.dumps(model_results)
@@ -78,6 +81,8 @@ def route2():
         # print(result["pitch_id"][0])
         db_pitch = Pitch.query.filter_by(odoo_id=result["pitch_id"][0]).first()
         # print(db_pitch.odoo_id)
+        result['booking_start'] = datetime.strftime(datetime.strptime(result['booking_start'], '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+        result['booking_end'] = datetime.strftime(datetime.strptime(result['booking_end'], '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
         result["pitch_id"] = db_pitch.odoo_id
     # print (model_results)
     return json.dumps(model_results)
