@@ -14,7 +14,7 @@ def route1():
     req_data = request.get_json()
 
     booking_date = req_data["bookingDate"]
-    booking_date_minus8 = datetime.strftime(datetime.strptime(booking_date, '%Y-%m-%d') - timedelta(hours=8), '%Y-%m-%d')
+    booking_date_minus8 = datetime.strftime(datetime.strptime(booking_date, '%Y-%m-%d') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     field_id = req_data["fieldId"]
 
     result_fields = Field.query.filter_by(id=field_id).first()
@@ -42,8 +42,8 @@ def route1():
         # print(result["pitch_id"][0])
         db_pitch = Pitch.query.filter_by(odoo_id=result["pitch_id"][0]).first()
         # print(db_pitch.odoo_id)
-        result['booking_start'] = datetime.strftime(datetime.strptime(result['booking_start'], '%Y-%m-%d') + timedelta(hours=8), '%Y-%m-%d')
-        result['booking_end'] = datetime.strftime(datetime.strptime(result['booking_end'], '%Y-%m-%d') + timedelta(hours=8), '%Y-%m-%d')
+        result['booking_start'] = datetime.strftime(datetime.strptime(result['booking_start'], '%Y-%m-%d %H:%M:%S') + timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+        result['booking_end'] = datetime.strftime(datetime.strptime(result['booking_end'], '%Y-%m-%d %H:%M:%S') + timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
         result["pitch_id"] = db_pitch.odoo_id
     # print (model_results)
     return json.dumps(model_results)
@@ -54,9 +54,9 @@ def route2():
     req_data = request.get_json()
 
     booking_date_start = req_data["bookingDateStart"]
-    booking_date_start_minus8 = datetime.strftime(datetime.strptime(booking_date_start, '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+    booking_date_start_minus8 = datetime.strftime(datetime.strptime(booking_date_start, '%Y-%m-%d') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     booking_date_end = req_data["bookingDateEnd"]
-    booking_date_end_minus8 = datetime.strftime(datetime.strptime(booking_date_end, '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+    booking_date_end_minus8 = datetime.strftime(datetime.strptime(booking_date_end, '%Y-%m-%d') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     field_id = req_data["fieldId"]
 
     result_fields = Field.query.filter_by(id=field_id).first()
