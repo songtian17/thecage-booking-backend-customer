@@ -4,6 +4,7 @@ from service.models import (
     Pitch,
     Product,
     Field,
+    Venue,
     purchase_log_schema,
     purchase_logs_schema,
     purchase_log2_schema,
@@ -65,20 +66,24 @@ def get_bookinghistory():
         #             for i in results_purchase_item:
 
             pitch = Pitch.query.get(i['pitch_id'])
-            i['pitch_id'] = pitch.name
+            i['pitchName'] = pitch.name
 
             field = Field.query.get(i['field_id'])
-            i['field_name'] = field.name
+            i['fieldType'] = field.field_type
+            a = field.venue_id
+            venue = Venue.query.get(a)
+            i['venueName'] = venue.name
 
             product = Product.query.get(i['product_id'])
-            i['product_id'] = product.name
+            i['productName'] = product.name
 
             i['endTime'] = i.pop('end_time')
-            i['fieldId'] = i.pop('field_id')
-            i['pitchId'] = i.pop('pitch_id')
-            i['productId'] = i.pop('product_id')
+            i.pop('field_id')
+            i.pop('pitch_id')
+            i.pop('product_id')
             i['purchaseLogId'] = i.pop('purchase_log_id')
             i['startTime'] = i.pop('start_time')
+            i['discountAmount'] = i.pop('price')
 
         #                 log['details'].append(i)
         #             return_list.append(log)
