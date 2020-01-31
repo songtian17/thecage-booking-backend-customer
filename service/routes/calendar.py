@@ -14,6 +14,7 @@ def route1():
     req_data = request.get_json()
 
     booking_date = req_data["bookingDate"]
+    booking_date_minus8 = datetime.strftime(datetime.strptime(bookingdate, '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     field_id = req_data["fieldId"]
 
     result_fields = Field.query.filter_by(id=field_id).first()
@@ -30,8 +31,8 @@ def route1():
         "search_read",
         [
             [
-                ["booking_start", ">=", booking_date],
-                ["booking_end", "<=", booking_date],
+                ["booking_start", ">=", booking_date_minus8],
+                ["booking_end", "<=", booking_date_minus8],
                 ["venue_id", "=", result["odoo_id"]],
             ]
         ],
@@ -53,7 +54,9 @@ def route2():
     req_data = request.get_json()
 
     booking_date_start = req_data["bookingDateStart"]
+    booking_date_start_minus8 = datetime.strftime(datetime.strptime(booking_date_start, '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     booking_date_end = req_data["bookingDateEnd"]
+    booking_date_end_minus8 = datetime.strftime(datetime.strptime(booking_date_end, '%Y-%m-%d %H:%M:%S') - timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     field_id = req_data["fieldId"]
 
     result_fields = Field.query.filter_by(id=field_id).first()
@@ -70,8 +73,8 @@ def route2():
         "search_read",
         [
             [
-                ["booking_start", ">=", booking_date_start],
-                ["booking_end", "<=", booking_date_end],
+                ["booking_start", ">=", booking_date_start_minus8],
+                ["booking_end", "<=", booking_date_end_minus8],
                 ["venue_id", "=", result["odoo_id"]],
             ]
         ],
