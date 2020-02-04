@@ -34,6 +34,7 @@ def enter_promo_code():
     promocode = PromoCode.query.all()
     result = promo_codes_schema.dump(promocode)
     # print(result)
+    code_does_not_exist = False
     for i in result:
         if i["code"] == code_name:
             code_id = i["id"]
@@ -63,7 +64,7 @@ def enter_promo_code():
                 amount = i["amount"]
                 cartitem_id = i["id"]
                 update_cart_item = CartItem.query.get(cartitem_id)
-                if apply_promocode.discount_type == "Percent":
+                if apply_promocode.discount_type == "Percentage":
                     discounted_amount = (100-apply_promocode.discount)*amount/100
                     update_cart_item.discounted_amount = discounted_amount
                     db.session.commit()
@@ -77,5 +78,6 @@ def enter_promo_code():
                     update_cart_item.discounted_amount = amount
                     db.session.commit()
                     return "Ok", 200
-        else:
-            return "Promo Code does not exist", 400
+    if code_does_not_exist == False:
+        return "Promo Code does not exist", 400                
+        
