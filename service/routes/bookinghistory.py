@@ -84,6 +84,7 @@ def get_bookinghistory():
             i['purchaseLogId'] = i.pop('purchase_log_id')
             i['startTime'] = i.pop('start_time')
             i['discountAmount'] = i.pop('price')
+            i['amount'] = i.pop('original_price')
 
         #                 log['details'].append(i)
         #             return_list.append(log)

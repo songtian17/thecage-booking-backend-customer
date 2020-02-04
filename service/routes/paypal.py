@@ -26,7 +26,7 @@ def payment():
     items_list = []
     cartitem = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).all()
     results = cart_items_schema.dump(cartitem)
-    # print(results)
+    print(results)
     total_amount = 0
     for result in results:
         item = {}
@@ -145,9 +145,10 @@ def execute():
             field_id = i.field_id
             pitch_id = i.pitch_id
             price = i.discounted_amount
+            original_price = i.amount
             start_time = i.start_time
             end_time = i.end_time
-            new_purchase_item = PurchaseItem(purchase_log_id, product_id, field_id, pitch_id, price, start_time, end_time)
+            new_purchase_item = PurchaseItem(purchase_log_id, product_id, field_id, pitch_id, price, original_price, start_time, end_time)
             db.session.add(new_purchase_item)
             db.session.commit()
 
