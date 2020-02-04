@@ -68,16 +68,17 @@ def enter_promo_code():
                     discounted_amount = (100-apply_promocode.discount)*amount/100
                     update_cart_item.discounted_amount = discounted_amount
                     db.session.commit()
-                    return "Ok", 200
+                    
                 elif apply_promocode.discount_type == "Price":
                     discounted_amount = (amount - apply_promocode.discount)
                     update_cart_item.discounted_amount = discounted_amount
                     db.session.commit()
-                    return "Ok", 200
+                    
                 else:
                     update_cart_item.discounted_amount = amount
                     db.session.commit()
-                    return "Ok", 200
+
+            return "Ok", 200       
     if code_does_not_exist == False:
         return "Promo Code does not exist", 400                
         
