@@ -70,15 +70,17 @@ def reset_password():
     file.close()
 
     new_password = request.json["password"]
-    input_jwt = request.json["token"]
+    input_token = request.json["token"]
 
-    customer_id = jwt.decode(input_jwt, key, algorithms='HS256')
+    password_reset_serializer = URLSafeTimedSerializer(key)
+    email = password_reset_serializer.loads(input_token, salt='password-reset-salt', max_age=3600)
+    # customer_id = jwt.decode(input_jwt, key, algorithms='HS256')
 
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(new_password.encode("utf8"), salt)
     new_hashed_password = hashed_password.decode("utf8")
 
-    customer = Customer.query.get(customer_id['customer_id'])
+    customer = Customer.query.filter_by(email=email).first()
 
     customer.password = new_hashed_password
     db.session.commit()
