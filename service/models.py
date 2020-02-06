@@ -367,8 +367,8 @@ class ProductSchema(ma.Schema):
     odoo_id = fields.Integer(required=True)
     start_time = fields.Time(required=True)
     end_time = fields.Time(required=True)
-
-
+    product_valid_day = fields.List(fields.Nested(FieldSchema()))
+    
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
 
