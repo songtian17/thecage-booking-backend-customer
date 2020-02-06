@@ -6,7 +6,7 @@ import bcrypt
 import jwt
 import json
 from itsdangerous import URLSafeTimedSerializer, exc
-from instance.config import sender_email
+from instance.config import sender_email, host
 
 
 @app.route("/forgetpassword", methods=["POST"])
@@ -32,7 +32,7 @@ def send_reset_email(email):
     password_reset_url = url_for(
         'validate_token',
         token=password_reset_serializer.dumps(email, salt='password-reset-salt'),
-        _external=True)
+        _external=True, _scheme='https')
 
     # host_to_replace = (password_reset_url[password_reset_url.find("//")+2:password_reset_url.find("/validate")])
     # password_reset_url = password_reset_url.replace(host_to_replace, 'localhost')
