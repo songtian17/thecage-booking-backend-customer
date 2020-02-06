@@ -333,6 +333,24 @@ class FieldSchema2(ma.Schema):
 field2_schema = FieldSchema2()
 fields2_schema = FieldSchema2(many=True)
 
+class ProductValidDay(db.Model):
+    __tablename__ = "ProductValidDay"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        "Product.id"), nullable=False)
+    day_of_week = db.Column(db.String(200), nullable=False)
+
+    def __init__(self, product_id, day_of_week):
+        self.product_id = product_id
+        self.day_of_week = day_of_week
+
+class ProductValidDaySchema(ma.Schema):
+    id = fields.Integer()
+    product_id = fields.Integer()
+    day_of_week = fields.String(required=True)
+
+product_valid_day_schema = ProductValidDaySchema()
+product_valid_days_schema = ProductValidDaySchema(many=True)
 
 class Product(db.Model):
     __tablename__ = "Product"
