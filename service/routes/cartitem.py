@@ -1,18 +1,66 @@
 from service import app
 from flask import jsonify, request
-from service.models import Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, field2_schema, fields2_schema, venue_schema, product_schema, pitch_schema, PromoCode
+from service.models import Customer, CustomerOdoo, Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, field2_schema, fields2_schema, venue_schema, product_schema, pitch_schema, PromoCode
 from datetime import datetime, timedelta
 from service import db
 import jwt
 import json
+from instance.config import url, db as database, username, password, id
+import xmlrpc.client
+from threading import Timer
 
 
 # Create
 @app.route("/cartitem", methods=["POST"])
 def add_cartitem():
     items = request.json["items"]
+    tokenstr = request.headers["Authorization"]
+    file = open("instance/key.key", "rb")
+    key = file.read()
+    file.close()
+    tokenstr = tokenstr.split(" ")
+    token = tokenstr[1]
+    customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
+    timestamp = datetime.now()
+    timestamp_utc = datetime.now()-timedelta(hours=8)
+    common = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/common")
+    uid = common.authenticate(database, username, password, {})
+    models = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/object")
+    model_results = ""
+    customer_odoo = CustomerOdoo.query.filter_by(customer_id=customer_id).first()
+    customer_odoo_odoo_id = customer_odoo.odoo_id
+    cartitems = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).all()
+    result = cart_items_schema.dump(cartitems)
+    print(result)
+    if (result == []):
+        sales_order_id = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order",
+            "create",
+            [
+                {
+                    "date_order": timestamp_utc.strftime("%Y-%m-%d %H:%M:%S"),
+                    "partner_id": int(customer_odoo_odoo_id),
+                    "user_id": int(id),
+                }
+            ],
+        )
+    else:
+        customer = Customer.query.get(customer_id)
+        customer_name = customer.name
+        customer_phone_no = customer.phone_no
+        sale_order = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order",
+            "search_read",
+            [[["partner_id", "=", f"{customer_name} ({customer_phone_no})"]]],
+        )
+        sales_order_id = sale_order[0]["id"]
     for i in items:
-        tokenstr = request.headers["Authorization"]
         pitch_id = i["pitchId"]
         start_time = i["booking_start"]
         end_time = i["booking_end"]
@@ -51,22 +99,68 @@ def add_cartitem():
                 discounted_amount = (new_amount - promocode.discount)
             else:
                 discounted_amount = new_amount
-        
+
         else:
             promocode_id = None
             discounted_amount = new_amount
-            
-        file = open("instance/key.key", "rb")
-        key = file.read()
-        file.close()
-        tokenstr = tokenstr.split(" ")
-        token = tokenstr[1]
-        customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
 
         newcartitem = CartItem(venue_id, field_id, new_pitch_id, promocode_id, customer_id, start_time, end_time, expiry_date, product_id, new_amount, discounted_amount)
         db.session.add(newcartitem)
 
+        booking_start = datetime.strftime(datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+        booking_end = datetime.strftime(datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+        product_qty = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') - datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds()/3600
+        product_name = (Product.query.get(product_id)).name
+        product_odoo_id = (Product.query.get(product_id)).odoo_id
+        pitch_odoo_id = (Pitch.query.get(pitch_id)).odoo_id
+        venue_odoo_id = (Field.query.get(field_id)).odoo_id
+
+        model_results = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order.line",
+            "create",
+            [
+                {
+                    "product_uos_qty": product_qty,
+                    "product_uom_qty": product_qty,
+                    "booking_start": booking_start,
+                    "booking_end": booking_end,
+                    "name": product_name,
+                    "order_id": int(sales_order_id),
+                    "product_id": int(product_odoo_id),
+                    "pitch_id": int(pitch_odoo_id),
+                    "venue_id": int(venue_odoo_id),
+                    "booking_state": "in_progress",
+                    "partner_id": int(customer_odoo_odoo_id)
+                },
+            ],
+            {
+                "context": {
+                    "tz": "Singapore"
+                }
+            }
+        )
+        print(model_results)
+
     db.session.commit()
+    def cancelOrder():
+        sale_order = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order",
+            "search_read",
+            [[["id", "=", sales_order_id]]],
+        )
+        if (sale_order[0]["state"] == "draft"):
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order', 'write',
+                [[int(sales_order_id)], {"state": 'cancel'}],
+            )
+    t = Timer(1200.0, cancelOrder)
+    t.start()
     return (request.json)
 
 # Update

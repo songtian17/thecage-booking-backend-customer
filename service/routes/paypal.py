@@ -96,8 +96,6 @@ def execute():
         customer_odoo = CustomerOdoo.query.filter_by(customer_id=customer_id).first()
         customer_odoo_odoo_id = customer_odoo.odoo_id
 
-        # to clean
-
         # create purchase log in postgres
         new_purchase_log = PurchaseLog(customer_id, timestamp)
         db.session.add(new_purchase_log)
@@ -106,20 +104,20 @@ def execute():
         purchaselog_id = new_purchase_log.id
 
         # create purchase log in odoo
-        sales_order_id = models.execute_kw(
-            database,
-            uid,
-            password,
-            "sale.order",
-            "create",
-            [
-                {
-                    "date_order": timestamp_utc.strftime("%Y-%m-%d %H:%M:%S"),
-                    "partner_id": int(customer_odoo_odoo_id),
-                    "user_id": int(id),
-                }
-            ],
-        )
+        # sales_order_id = models.execute_kw(
+        #     database,
+        #     uid,
+        #     password,
+        #     "sale.order",
+        #     "create",
+        #     [
+        #         {
+        #             "date_order": timestamp_utc.strftime("%Y-%m-%d %H:%M:%S"),
+        #             "partner_id": int(customer_odoo_odoo_id),
+        #             "user_id": int(id),
+        #         }
+        #     ],
+        # )
 
         # check and/or update promo code usage
         cartitems = CartItem.query.filter_by(customer_id=customer_id).filter(CartItem.expiry_date > datetime.now()).all()
@@ -157,40 +155,101 @@ def execute():
             product_qty = (end_time - start_time).total_seconds()/3600
             booking_start = datetime.strftime(start_time-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
             booking_end = datetime.strftime(end_time-timedelta(hours=8), '%Y-%m-%d %H:%M:%S')
+            # booking_start = datetime.strftime(start_time, '%Y-%m-%d %H:%M:%S')
+            # booking_end = datetime.strftime(end_time, '%Y-%m-%d %H:%M:%S')
             product_name = (Product.query.get(product_id)).name
             product_odoo_id = (Product.query.get(product_id)).odoo_id
             pitch_odoo_id = (Pitch.query.get(pitch_id)).odoo_id
             venue_odoo_id = (Field.query.get(field_id)).odoo_id
+            # venue_name = "Kallang 05"
+            # pitch_name = "P5"
+            venue_name = models.execute_kw(database, uid, password,
+                'pitch_booking.venue', 'search_read',
+                [[['id', '=', str(venue_odoo_id)]]], {'fields': ['name']},
+            )[0]["name"]
+            pitch_name =  models.execute_kw(database, uid, password,
+                'pitch_booking.pitch', 'search_read',
+                [[['id', '=', pitch_odoo_id]]], {'fields': ['name']},
+            )[0]["name"]
 
-            # create in odoo
-            model_results = models.execute_kw(
-                database,
-                uid,
-                password,
-                "sale.order.line",
-                "create",
-                [
-                    {
-                        "product_uos_qty": product_qty,
-                        "product_uom_qty": product_qty,
-                        "booking_start": booking_start,
-                        "booking_end": booking_end,
-                        "name": product_name,
-                        "order_id": int(sales_order_id),
-                        "product_id": int(product_odoo_id),
-                        "pitch_id": int(pitch_odoo_id),
-                        "venue_id": int(venue_odoo_id),
-                        "booking_state": "in_progress",
-                        "partner_id": int(customer_odoo_odoo_id)
-                    },
-                ],
-                {
-                    "context": {
-                        "tz": "Singapore"
-                    }
-                }
+            print(pitch_name)
+            print(venue_name)
+
+            line_id = models.execute_kw(database, uid, password,
+                'sale.order.line', 'search',
+                [[["pitch_id", '=', pitch_name], ["venue_id", '=', venue_name], ['booking_start', '=', booking_start], ['booking_end', '=', booking_end]]],
+            )[0]
+            order_id = models.execute_kw(database, uid, password,
+                'sale.order.line', 'search_read',
+                [[["pitch_id", '=', pitch_name], ["venue_id", '=', venue_name], ['booking_start', '=', booking_start], ['booking_end', '=', booking_end]]],
+                {'fields': ['order_id']},
+            )[0]["order_id"][0]
+            print(line_id)
+            print(order_id)
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order.line', 'write',
+                [[int(line_id)], {"state": "confirmed"}],
             )
-            print(json.dumps(model_results))
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order', 'write',
+                [[int(order_id)], {"state": "manual"}],
+            )
+            invoice_id = models.execute_kw(database, uid, password, 
+                'sale.order', 'action_invoice_create', 
+                [order_id, {"active_ids": order_id}]
+            )
+            modelResults = models.execute_kw(database, uid, password, 
+                'account.invoice', 'invoice_validate', 
+                [invoice_id]
+            )
+            residual = (models.execute_kw(database, uid, password, 
+                'account.invoice', 'read',
+                [int(invoice_id)], {"fields": ["amount_total"]})
+            )["amount_total"]
+            modelResults = models.execute_kw(database, uid, password,
+                'account.invoice', 'write',
+                [[int(invoice_id)], {'residual': residual, "date_invoice": datetime.strftime(datetime.now()-timedelta(hours=8), '%Y-%m-%d')}],
+            )
+            modelResults = models.execute_kw(database, uid, password,
+                'account.invoice', 'write',
+                [[invoice_id], {"state": "paid"}],
+            )
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order.line', 'write',
+                [[line_id], {"state": "done"}],
+            )
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order', 'write',
+                [[order_id], {"state": "done"}],
+            )
+            # create in odoo
+            # model_results = models.execute_kw(
+            #     database,
+            #     uid,
+            #     password,
+            #     "sale.order.line",
+            #     "create",
+            #     [
+            #         {
+            #             "product_uos_qty": product_qty,
+            #             "product_uom_qty": product_qty,
+            #             "booking_start": booking_start,
+            #             "booking_end": booking_end,
+            #             "name": product_name,
+            #             "order_id": int(sales_order_id),
+            #             "product_id": int(product_odoo_id),
+            #             "pitch_id": int(pitch_odoo_id),
+            #             "venue_id": int(venue_odoo_id),
+            #             "booking_state": "in_progress",
+            #             "partner_id": int(customer_odoo_odoo_id)
+            #         },
+            #     ],
+            #     {
+            #         "context": {
+            #             "tz": "Singapore"
+            #         }
+            #     }
+            # )
 
         CartItem.query.filter_by(customer_id=customer_id).delete()
         db.session.commit()
