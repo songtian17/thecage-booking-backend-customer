@@ -7,7 +7,7 @@ import jwt
 import json
 from itsdangerous import URLSafeTimedSerializer, exc
 from instance.config import sender_email
-from config import host
+from config import domain
 from urllib.parse import quote
 
 
@@ -30,17 +30,8 @@ def send_reset_email(email):
     key = file.read()
     file.close()
     password_reset_serializer = URLSafeTimedSerializer(key)
-    url = 'https://' + host + '/validatetoken?token=' + password_reset_serializer.dumps(email, salt='password-reset-salt')
+    url = 'https://' + domain + '/resetpassword?token=' + password_reset_serializer.dumps(email, salt='password-reset-salt')
     quote(url)
-
-   
-    # password_reset_url = url_for(
-    #     'validate_token',
-    #     token=password_reset_serializer.dumps(email, salt='password-reset-salt'),
-    #     _external=True, _scheme='https')
-    #print(password_reset_url)
-    # host_to_replace = (password_reset_url[password_reset_url.find("//")+2:password_reset_url.find("/validate")])
-    # password_reset_url = password_reset_url.replace(host_to_replace, 'localhost')
 
     html = render_template(
         "emailpasswordreset.html",
