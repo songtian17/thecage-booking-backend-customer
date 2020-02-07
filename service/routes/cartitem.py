@@ -270,8 +270,9 @@ def delete_cartitem(Id):
     venue_id = cartitem.venue_id
     start_time = cartitem.start_time
     end_time = cartitem.end_time
+    field_id = cartitem.field_id
     pitch_odoo_id = (Pitch.query.get(pitch_id)).odoo_id
-    venue_odoo_id = (Field.query.filter_by(venue_id=venue_id).first()).odoo_id
+    venue_odoo_id = (Field.query.filter_by(id=field_id).first()).odoo_id
 
     common = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/common")
     uid = common.authenticate(database, username, password, {})
@@ -336,25 +337,27 @@ def delete_cartitem(Id):
         [[["id", "=", order['order_id'][0]]]],
         {'fields': ['id', 'date_order', 'partner_id', 'user_id']}
     )
-    sales_order_new_id = models.execute_kw(
-        database,
-        uid,
-        password,
-        "sale.order",
-        "create",
-        [
+    print(len(sale_order_lines_search))
+    if (len(sale_order_lines_search) != 1):
+        sales_order_new_id = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order",
+            "create",
+            [
+                {
+                    "date_order": sale_order[0]['date_order'],
+                    "partner_id": sale_order[0]['partner_id'][0],
+                    "user_id": sale_order[0]['user_id'][0],
+                }
+            ],
             {
-                "date_order": sale_order[0]['date_order'],
-                "partner_id": sale_order[0]['partner_id'][0],
-                "user_id": sale_order[0]['user_id'][0],
+                "context": {
+                    "tz": "Singapore"
+                }
             }
-        ],
-        {
-            "context": {
-                "tz": "Singapore"
-            }
-        }
-    )
+        )
     modelResults = models.execute_kw(database, uid, password,
         'sale.order', 'write',
         [[sale_order[0]['id']], {"state": "cancel"}],
