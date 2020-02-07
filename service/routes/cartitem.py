@@ -41,11 +41,16 @@ def add_cartitem():
             "create",
             [
                 {
-                    "date_order": timestamp_utc.strftime("%Y-%m-%d %H:%M:%S"),
+                    "date_order": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                     "partner_id": int(customer_odoo_odoo_id),
                     "user_id": int(id),
                 }
             ],
+            {
+                "context": {
+                    "tz": "Singapore"
+                }
+            }
         )
     else:
         customer = Customer.query.get(customer_id)
@@ -169,7 +174,7 @@ def add_cartitem():
 #     cartitem = CartItem.query.get(Id)
 #     product_name = request.json["product"]
 
-    
+
 #     product = Product.query.filter_by(name=product_name).first()
 #     product_id = product.id
 #     amount = product.price
@@ -200,6 +205,7 @@ def add_cartitem():
 # Get customer's cart items
 @app.route("/cartitem", methods=["GET"])
 def get_cartitem():
+
     return_list = {}
     tokenstr = request.headers["Authorization"]
 
@@ -260,6 +266,145 @@ def get_cartitem_by_id(Id):
 @app.route("/cartitem/<Id>", methods=["DELETE"])
 def delete_cartitem(Id):
     cartitem = CartItem.query.get(Id)
+    pitch_id = cartitem.pitch_id
+    venue_id = cartitem.venue_id
+    start_time = cartitem.start_time
+    end_time = cartitem.end_time
+    pitch_odoo_id = (Pitch.query.get(pitch_id)).odoo_id
+    venue_odoo_id = (Field.query.filter_by(venue_id=venue_id).first()).odoo_id
+
+    common = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/common")
+    uid = common.authenticate(database, username, password, {})
+    models = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/object")
+
+    venue_name = models.execute_kw(database, uid, password,
+        'pitch_booking.venue', 'search_read',
+        [[['id', '=', str(venue_odoo_id)]]], {'fields': ['name']},
+    )[0]["name"]
+    pitch_name =  models.execute_kw(database, uid, password,
+        'pitch_booking.pitch', 'search_read',
+        [[['id', '=', pitch_odoo_id]]], {'fields': ['name']},
+    )[0]["name"]
+
+    common = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/common")
+    uid = common.authenticate(database, username, password, {})
+    models = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/object")
+    order = models.execute_kw(
+        database,
+        uid,
+        password,
+        "sale.order.line",
+        "search_read",
+        [[["booking_start", "=", (start_time-timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")], ["booking_end", "=", (end_time-timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")], ["pitch_id", '=', pitch_name], ["venue_id", '=', venue_name]]],
+        {'fields':
+            [
+                'id',
+                "order_id"
+            ]
+        }
+    )[0]
+    sale_order_lines_search = models.execute_kw(
+        database,
+        uid,
+        password,
+        "sale.order.line",
+        "search_read",
+        [[["order_id", "=", order['order_id'][0]]]],
+        {'fields':
+            [
+                'id', 
+                "product_uos_qty",
+                "product_uom_qty",
+                "booking_start",
+                "booking_end",
+                "name",
+                "order_id",
+                "product_id",
+                "pitch_id",
+                "venue_id",
+                "booking_state",
+                "partner_id"
+            ]
+        }
+    )
+    sale_order = models.execute_kw(
+        database,
+        uid,
+        password,
+        "sale.order",
+        "search_read",
+        [[["id", "=", order['order_id'][0]]]],
+        {'fields': ['id', 'date_order', 'partner_id', 'user_id']}
+    )
+    sales_order_new_id = models.execute_kw(
+        database,
+        uid,
+        password,
+        "sale.order",
+        "create",
+        [
+            {
+                "date_order": sale_order[0]['date_order'],
+                "partner_id": sale_order[0]['partner_id'][0],
+                "user_id": sale_order[0]['user_id'][0],
+            }
+        ],
+        {
+            "context": {
+                "tz": "Singapore"
+            }
+        }
+    )
+    modelResults = models.execute_kw(database, uid, password,
+        'sale.order', 'write',
+        [[sale_order[0]['id']], {"state": "cancel"}],
+    )
+    for sale_order_line in sale_order_lines_search:
+        if (sale_order_line['id'] != order['id']):
+            model_results = models.execute_kw(
+                database,
+                uid,
+                password,
+                "sale.order.line",
+                "create",
+                [
+                    {
+                        "product_uos_qty": sale_order_line['product_uos_qty'],
+                        "product_uom_qty": sale_order_line['product_uom_qty'],
+                        "booking_start": sale_order_line['booking_start'],
+                        "booking_end": sale_order_line['booking_end'],
+                        "name": sale_order_line['name'],
+                        "order_id": int(sales_order_new_id),
+                        "product_id": int(sale_order_line['product_id'][0]),
+                        "pitch_id": int(sale_order_line['pitch_id'][0]),
+                        "venue_id": int(sale_order_line['venue_id'][0]),
+                        "booking_state": "in_progress",
+                        "partner_id": int(sale_order_line['partner_id'][0])
+                    },
+                ],
+                {
+                    "context": {
+                        "tz": "Singapore"
+                    }
+                }
+            )
+    def cancelOrder():
+        sale_order = models.execute_kw(
+            database,
+            uid,
+            password,
+            "sale.order",
+            "search_read",
+            [[["id", "=", sales_order_new_id]]],
+        )
+        if (sale_order[0]["state"] == "draft"):
+            modelResults = models.execute_kw(database, uid, password,
+                'sale.order', 'write',
+                [[int(sales_order_new_id)], {"state": 'cancel'}],
+            )
+    t = Timer(60.0, cancelOrder)
+    t.start()
+
     db.session.delete(cartitem)
     db.session.commit()
 
@@ -277,7 +422,27 @@ def delete_all_cartitems():
     tokenstr = tokenstr.split(" ")
     token = tokenstr[1]
     customer_id = jwt.decode(token, key, algorithms=['HS256'])["customer_id"]
+    customer = Customer.query.get(customer_id)
+    customer_name = customer.name
+    customer_phone_no = customer.phone_no
     print(customer_id)
+
+    common = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/common")
+    uid = common.authenticate(database, username, password, {})
+    models = xmlrpc.client.ServerProxy(f"{url}xmlrpc/2/object")
+    sale_orders = models.execute_kw(
+        database,
+        uid,
+        password,
+        "sale.order",
+        "search_read",
+        [[["partner_id", "=", f"{customer_name} ({customer_phone_no})"], ["state", "=", "draft"]]], {'fields': ['id']},
+    )
+    for sale_order in sale_orders:
+        modelResults = models.execute_kw(database, uid, password,
+            'sale.order', 'write',
+            [[int(sale_order['id'])], {"state": "cancel"}],
+        )
     CartItem.query.filter_by(customer_id=customer_id).delete()
     db.session.commit()
 
