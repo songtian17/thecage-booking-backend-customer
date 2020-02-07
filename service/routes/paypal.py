@@ -40,7 +40,7 @@ def payment():
         item["name"] = product.name
         item["sku"] = product.id
         item["price"] = result["discounted_amount"]
-        item["description"] = f'venue_name: {venue_name}, venue_id: {result["venue_id"]}, field_name: {field_name}, field_id: {result["field_id"]}, pitch_name: {pitch_name}, pitch_id: {result["field_id"]}, start_time: {result["start_time"]}, end_time: {result["end_time"]}'
+        item["description"] = f'Venue Name: {venue_name}, Field Name: {field_name}, Pitch Name: {pitch_name}, Start Time: {result["start_time"]}, End Time: {result["end_time"]}'
         item["currency"] = "SGD"
         item["quantity"] = 1
         items_list.append(item)
