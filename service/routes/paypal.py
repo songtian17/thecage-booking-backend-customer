@@ -97,7 +97,8 @@ def execute():
         customer_odoo_odoo_id = customer_odoo.odoo_id
 
         # create purchase log in postgres
-        new_purchase_log = PurchaseLog(customer_id, timestamp)
+        print (request.form['paymentID'])
+        new_purchase_log = PurchaseLog(customer_id, timestamp, request.form['paymentID'])
         db.session.add(new_purchase_log)
         db.session.flush()
         db.session.commit()

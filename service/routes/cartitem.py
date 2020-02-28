@@ -1,6 +1,6 @@
 from service import app
 from flask import jsonify, request
-from service.models import Customer, CustomerOdoo, Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, field2_schema, fields2_schema, venue_schema, product_schema, pitch_schema, PromoCode
+from service.models import TimingDiscount, timingdiscount_schema, Customer, CustomerOdoo, Venue, Field, CartItem, Product, Pitch, cart_item_schema, cart_items_schema, cart_item2s_schema, field2_schema, fields2_schema, venue_schema, product_schema, pitch_schema, PromoCode
 from datetime import datetime, timedelta
 from service import db
 import jwt
@@ -94,6 +94,20 @@ def add_cartitem():
         promocode = PromoCode.query.filter_by(code=code_name).first()
         no_of_hours = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') - datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds()/3600
         new_amount = amount*no_of_hours
+
+        # check timing discount
+        timingdiscount = timingdiscount_schema.dump(TimingDiscount.query.get(1))
+        timingdiscount_date = datetime.date(datetime.strptime(timingdiscount.get('date'), '%Y-%m-%d'))
+        if (datetime.date(datetime.today()) == timingdiscount_date):
+            x = timingdiscount.get('discount_type')
+            if x == "Percentage":
+                new_amount = (100-timingdiscount.get('discount'))*new_amount/100
+            elif x == "Price":
+                new_amount = (new_amount - timingdiscount.get('discount'))
+            else:
+                new_amount = new_amount
+
+        # check promo code usage
         if code_name is not None:
             promocode_id = promocode.id
             promocode = PromoCode.query.filter_by(code=code_name).first()

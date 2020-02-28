@@ -605,19 +605,21 @@ class PurchaseLog(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey(
         "Customer.id"), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    paypal_id = db.Column(db.String(200))
     purchase_items = db.relationship(
         "PurchaseItem", backref="purchaselog", lazy=True, cascade="all, delete")
 
-    def __init__(self, customer_id, timestamp):
+    def __init__(self, customer_id, timestamp, paypal_id):
         self.timestamp = timestamp
         self.customer_id = customer_id
+        self.paypal_id = paypal_id
 
 
 class PurchaseLogSchema(ma.Schema):
     id = fields.Integer()
     customer_id = fields.Integer()
     timestamp = fields.DateTime()
-
+    paypal_id = fields.String()
 
 purchase_log_schema = PurchaseLogSchema()
 purchase_logs_schema = PurchaseLogSchema(many=True)
@@ -627,6 +629,7 @@ class PurchaseLogSchema2(ma.Schema):
     id = fields.Integer()
     customer_id = fields.Integer()
     timestamp = fields.DateTime()
+    paypal_id = fields.String()
     fields = fields.List(fields.Nested(PurchaseItemSchema(only=(
         "id", "product_id", "field_id", "price", "start_time", "end_time"
         ))))
@@ -644,14 +647,16 @@ class TimingDiscount(db.Model):
     discount_type = db.Column(db.String(200), nullable=False)
     discount = db.Column(db.Float, nullable=False)
     status = db.Column(db.Boolean, default=False)
+    date = db.Column(db.Date)
     # promo_codes = db.relationship("PromoCode", backref="timingdiscount", lazy=True)
 
-    def __init__(self, start_time, end_time, discount_type, discount, status):
+    def __init__(self, start_time, end_time, discount_type, discount, status, date):
         self.start_time = start_time
         self.end_time = end_time
         self.discount_type = discount_type
         self.discount = discount
         self.status = status
+        self.date = date
 
 
 class TimingDiscountSchema(ma.Schema):
@@ -661,6 +666,7 @@ class TimingDiscountSchema(ma.Schema):
     discount_type = fields.String(required=True)
     discount = fields.Float(required=True)
     status = fields.Boolean()
+    date = fields.Date()
 
 
 timingdiscount_schema = TimingDiscountSchema()
